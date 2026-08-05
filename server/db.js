@@ -77,6 +77,17 @@ export async function initDb() {
       console.log('✅ Usuario administrador predeterminado creado: admin@slp.com / admin123');
     }
 
+    // Insertar/Asegurar nuevo admin: Luis Eduardo Zarate
+    const resLuis = await client.query('SELECT * FROM users WHERE email = $1', ['lenwetes@gmail.com']);
+    if (resLuis.rows.length === 0) {
+      const hashedPassLuis = await bcrypt.hash('admin123', 10);
+      await client.query(
+        'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)',
+        ['Luis Eduardo Zarate', 'lenwetes@gmail.com', hashedPassLuis, 'admin']
+      );
+      console.log('✅ Usuario administrador creado: lenwetes@gmail.com / admin123');
+    }
+
     // Migración: actualizar cover_url con rutas locales a URLs externas
     await client.query(`
       UPDATE posts SET cover_url = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80'

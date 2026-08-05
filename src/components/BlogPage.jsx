@@ -44,7 +44,7 @@ function ArticleModal({ article, onClose, onOpenQuote }) {
 
         {/* Hero image */}
         <div style={{ height: 260, position: 'relative', overflow: 'hidden' }}>
-          <img src={article.cover} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={article.cover_url || article.cover} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(15,30,51,0.9) 100%)' }} />
           <div style={{ position: 'absolute', bottom: 20, left: 32, right: 32, color: '#fff' }}>
             <span style={{
@@ -138,7 +138,7 @@ function ArticleCard({ art, onRead }) {
   return (
     <div className="blog-item-card" style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 16px rgba(15,30,51,0.05)' }}>
       <div style={{ height: 200, position: 'relative', overflow: 'hidden' }}>
-        <img src={art.cover} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={art.cover_url || art.cover} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <span style={{ position: 'absolute', top: 12, left: 12, fontSize: 9.5, fontWeight: 800, color: art.accent, background: 'rgba(255,255,255,0.92)', padding: '4px 12px', borderRadius: 14, textTransform: 'uppercase', letterSpacing: '0.08em', backdropFilter: 'blur(4px)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           {art.categoryLabel}
         </span>
@@ -286,7 +286,7 @@ export default function BlogPage({ onBack, onOpenQuote }) {
                 </button>
               </div>
               <div style={{ height: '100%', minHeight: 340, overflow: 'hidden' }}>
-                <img src={featuredArt.cover} alt={featuredArt.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={featuredArt.cover_url || featuredArt.cover} alt={featuredArt.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
             </div>
           </div>

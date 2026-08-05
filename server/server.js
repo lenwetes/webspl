@@ -68,9 +68,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   const { email } = req.body;
   try {
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    // Siempre responder OK para no revelar si el email existe
     if (result.rows.length === 0) {
-      return res.json({ ok: true });
+      return res.status(400).json({ error: 'El correo electrónico no se encuentra registrado en el sistema.' });
     }
     const user = result.rows[0];
     const token = crypto.randomBytes(48).toString('hex');
