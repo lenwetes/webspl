@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit3, Trash2, Eye, EyeOff, LogOut, Sparkles, Search, CheckCircle, Clock, Users, FileText, UserPlus, X, AlertCircle } from 'lucide-react';
-import { fetchAllPostsAdmin, deletePostAdmin, togglePublishAdmin, fetchUsersAdmin, createUserAdmin, deleteUserAdmin } from '../../services/api';
+import { Plus, Edit3, Trash2, Eye, EyeOff, LogOut, Sparkles, Search, CheckCircle, Clock, Users, FileText, UserPlus, X, AlertCircle, Key, UserCheck, Shield } from 'lucide-react';
+import { fetchAllPostsAdmin, deletePostAdmin, togglePublishAdmin, fetchUsersAdmin, createUserAdmin, deleteUserAdmin, updateUserAdmin, updateProfileAdmin } from '../../services/api';
 import PostEditor from './PostEditor';
 import SLPLogo from '../SLPLogo';
 
@@ -23,6 +23,20 @@ export default function AdminDashboard({ token, admin, onLogout, onGoToSite }) {
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '' });
   const [userModalError, setUserModalError] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
+
+  // Edit User State
+  const [editingUser, setEditingUser] = useState(null); // usuario seleccionado para editar
+  const [editUserData, setEditUserData] = useState({ name: '', email: '', password: '' });
+  const [updatingUser, setUpdatingUser] = useState(false);
+  const [editUserError, setEditUserError] = useState('');
+
+  // Self Profile / Change Password State
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileData, setProfileData] = useState({ name: admin?.name || '', email: admin?.email || '', currentPassword: '', newPassword: '' });
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [profileModalError, setProfileModalError] = useState('');
+  const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
+
 
   const loadPosts = async () => {
     setLoadingPosts(true);
@@ -100,6 +114,53 @@ export default function AdminDashboard({ token, admin, onLogout, onGoToSite }) {
     }
   };
 
+  const handleOpenEditUser = (u) => {
+    setEditingUser(u);
+    setEditUserData({ name: u.name, email: u.email, password: '' });
+    setEditUserError('');
+  };
+
+  const handleEditUserSubmit = async (e) => {
+    e.preventDefault();
+    setEditUserError('');
+    setUpdatingUser(true);
+    try {
+      await updateUserAdmin(token, editingUser.id, editUserData);
+      setEditingUser(null);
+      loadUsers();
+    } catch (err) {
+      setEditUserError(err.message || 'Error al actualizar el usuario');
+    } finally {
+      setUpdatingUser(false);
+    }
+  };
+
+  const handleOpenProfileModal = () => {
+    setProfileData({ name: admin?.name || '', email: admin?.email || '', currentPassword: '', newPassword: '' });
+    setProfileModalError('');
+    setProfileSuccessMsg('');
+    setShowProfileModal(true);
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setProfileModalError('');
+    setProfileSuccessMsg('');
+    setUpdatingProfile(true);
+    try {
+      const updatedUser = await updateProfileAdmin(token, profileData);
+      setProfileSuccessMsg('¡Perfil y contraseña actualizados correctamente!');
+      localStorage.setItem('slp_admin_user', JSON.stringify(updatedUser));
+      setTimeout(() => {
+        setShowProfileModal(false);
+      }, 1500);
+    } catch (err) {
+      setProfileModalError(err.message || 'Error al actualizar el perfil');
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
   if (isCreatingPost || editingPost) {
     return (
       <PostEditor
@@ -131,7 +192,28 @@ export default function AdminDashboard({ token, admin, onLogout, onGoToSite }) {
               Ver Sitio Web →
             </button>
             <div style={{ height: 16, width: 1, background: 'rgba(255,255,255,0.15)' }} />
-            <span style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 600 }}>{admin?.name || admin?.email}</span>
+            
+            <button
+              onClick={handleOpenProfileModal}
+              title="Editar mi perfil y cambiar contraseña"
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: '#e2e8f0',
+                padding: '6px 12px',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Key style={{ width: 14, height: 14, color: '#f37021' }} />
+              <span>{admin?.name || admin?.email}</span>
+            </button>
+
             <button onClick={onLogout} style={{ background: 'rgba(239,68,68,0.15)', border: 'none', color: '#ef4444', padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <LogOut style={{ width: 14, height: 14 }} /> Salir
             </button>
@@ -346,11 +428,16 @@ export default function AdminDashboard({ token, admin, onLogout, onGoToSite }) {
                           {new Date(u.created_at).toLocaleDateString('es-CO')}
                         </td>
                         <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                          {admin?.id !== u.id && (
-                            <button onClick={() => handleDeleteUser(u.id, u.email)} title="Eliminar Usuario" style={{ background: '#fef2f2', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer', color: '#ef4444' }}>
-                              <Trash2 style={{ width: 16, height: 16 }} />
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                            <button onClick={() => handleOpenEditUser(u)} title="Editar Usuario / Cambiar Contraseña" style={{ background: '#f1f5f9', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer', color: '#334155' }}>
+                              <Edit3 style={{ width: 16, height: 16 }} />
                             </button>
-                          )}
+                            {admin?.id !== u.id && (
+                              <button onClick={() => handleDeleteUser(u.id, u.email)} title="Eliminar Usuario" style={{ background: '#fef2f2', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer', color: '#ef4444' }}>
+                                <Trash2 style={{ width: 16, height: 16 }} />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -430,6 +517,168 @@ export default function AdminDashboard({ token, admin, onLogout, onGoToSite }) {
                 }}
               >
                 {creatingUser ? 'Creando...' : 'Crear Usuario'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: EDITAR USUARIO ── */}
+      {editingUser && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(15,30,51,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 20, maxWidth: 420, width: '100%', padding: 28, boxShadow: '0 20px 50px rgba(0,0,0,0.2)', position: 'relative' }}>
+            <button onClick={() => setEditingUser(null)} style={{ position: 'absolute', top: 16, right: 16, background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <X style={{ width: 16, height: 16, color: '#64748b' }} />
+            </button>
+
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f1e33', margin: '0 0 6px' }}>Editar Usuario</h3>
+            <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 20px' }}>Modificar datos o asignar nueva contraseña a {editingUser.email}</p>
+
+            {editUserError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: 12, marginBottom: 16, color: '#991b1b', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
+                <span>{editUserError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditUserSubmit}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>Nombre Completo</label>
+                <input
+                  type="text"
+                  required
+                  value={editUserData.name}
+                  onChange={e => setEditUserData({ ...editUserData, name: e.target.value })}
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>Correo Electrónico</label>
+                <input
+                  type="email"
+                  required
+                  value={editUserData.email}
+                  onChange={e => setEditUserData({ ...editUserData, email: e.target.value })}
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Nueva Contraseña <span style={{ color: '#94a3b8', textTransform: 'none', fontWeight: 500 }}>(Opcional)</span>
+                </label>
+                <input
+                  type="password"
+                  value={editUserData.password}
+                  onChange={e => setEditUserData({ ...editUserData, password: e.target.value })}
+                  placeholder="Dejar en blanco para mantener la actual"
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={updatingUser}
+                style={{
+                  width: '100%', padding: 12, borderRadius: 10, border: 'none',
+                  background: 'linear-gradient(135deg, #f37021, #dc5c10)', color: '#fff',
+                  fontSize: 13, fontWeight: 800, cursor: updatingUser ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 14px rgba(243, 112, 33, 0.3)'
+                }}
+              >
+                {updatingUser ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: MI PERFIL Y CAMBIAR CONTRASEÑA ── */}
+      {showProfileModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(15,30,51,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 20, maxWidth: 440, width: '100%', padding: 28, boxShadow: '0 20px 50px rgba(0,0,0,0.2)', position: 'relative' }}>
+            <button onClick={() => setShowProfileModal(false)} style={{ position: 'absolute', top: 16, right: 16, background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <X style={{ width: 16, height: 16, color: '#64748b' }} />
+            </button>
+
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f1e33', margin: '0 0 6px' }}>Mi Perfil & Seguridad</h3>
+            <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 20px' }}>Edita tus datos personales y cambia tu contraseña de acceso</p>
+
+            {profileModalError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: 12, marginBottom: 16, color: '#991b1b', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
+                <span>{profileModalError}</span>
+              </div>
+            )}
+
+            {profileSuccessMsg && (
+              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 10, padding: 12, marginBottom: 16, color: '#15803d', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <CheckCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
+                <span>{profileSuccessMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleProfileSubmit}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>Nombre Completo</label>
+                <input
+                  type="text"
+                  required
+                  value={profileData.name}
+                  onChange={e => setProfileData({ ...profileData, name: e.target.value })}
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>Correo Electrónico</label>
+                <input
+                  type="email"
+                  required
+                  value={profileData.email}
+                  onChange={e => setProfileData({ ...profileData, email: e.target.value })}
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <hr style={{ border: 'none', borderTop: '1px solid #f1f5f9', margin: '20px 0' }} />
+              
+              <h4 style={{ fontSize: 13, fontWeight: 800, color: '#0f1e33', margin: '0 0 14px' }}>Cambiar Contraseña (Opcional)</h4>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>Contraseña Actual</label>
+                <input
+                  type="password"
+                  value={profileData.currentPassword}
+                  onChange={e => setProfileData({ ...profileData, currentPassword: e.target.value })}
+                  placeholder="Requerida para cambiar contraseña"
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>Nueva Contraseña</label>
+                <input
+                  type="password"
+                  value={profileData.newPassword}
+                  onChange={e => setProfileData({ ...profileData, newPassword: e.target.value })}
+                  placeholder="Mínimo 8 caracteres"
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={updatingProfile}
+                style={{
+                  width: '100%', padding: 12, borderRadius: 10, border: 'none',
+                  background: 'linear-gradient(135deg, #0f1e33, #162a45)', color: '#fff',
+                  fontSize: 13, fontWeight: 800, cursor: updatingProfile ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 14px rgba(15, 30, 51, 0.3)'
+                }}
+              >
+                {updatingProfile ? 'Actualizando...' : 'Actualizar Perfil'}
               </button>
             </form>
           </div>

@@ -123,6 +123,30 @@ export async function deleteUserAdmin(token, userId) {
   return await handleResponse(res, 'Error al eliminar usuario');
 }
 
+export async function updateUserAdmin(token, userId, userData) {
+  const res = await fetch(`${API_BASE}/auth/users/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(userData),
+  });
+  return await handleResponse(res, 'Error al actualizar usuario');
+}
+
+export async function updateProfileAdmin(token, profileData) {
+  const res = await fetch(`${API_BASE}/auth/profile`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(profileData),
+  });
+  return await handleResponse(res, 'Error al actualizar el perfil');
+}
+
 export async function uploadImage(token, file) {
   const formData = new FormData();
   formData.append('image', file);

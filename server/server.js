@@ -314,6 +314,74 @@ app.delete('/api/auth/users/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Admin: Editar usuario (nombre, email, rol, contraseña opcional)
+app.put('/api/auth/users/:id', authenticateToken, async (req, res) => {
+  const { name, email, role, password } = req.body;
+  const userId = req.params.id;
+
+  try {
+    if (password && password.trim().length >= 6) {
+      const hashedPass = await bcrypt.hash(password, 10);
+      const result = await pool.query(
+        'UPDATE users SET name = $1, email = $2, role = $3, password = $4 WHERE id = $5 RETURNING id, name, email, role',
+        [name, email, role || 'admin', hashedPass, userId]
+      );
+      return res.json(result.rows[0]);
+    } else {
+      const result = await pool.query(
+        'UPDATE users SET name = $1, email = $2, role = $3 WHERE id = $4 RETURNING id, name, email, role',
+        [name, email, role || 'admin', userId]
+      );
+      return res.json(result.rows[0]);
+    }
+  } catch (err) {
+    console.error('Error al actualizar usuario:', err);
+    res.status(400).json({ error: 'Error al actualizar usuario. El correo electrónico puede estar en uso.' });
+  }
+});
+
+// Admin: Editar mi propio perfil / cambiar contraseña
+app.put('/api/auth/profile', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  const { name, email, currentPassword, newPassword } = req.body;
+
+  try {
+    const userRes = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    const user = userRes.rows[0];
+
+    if (newPassword && newPassword.trim().length > 0) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Debes proporcionar tu contraseña actual para cambiarla.' });
+      }
+      const validPass = await bcrypt.compare(currentPassword, user.password);
+      if (!validPass) {
+        return res.status(400).json({ error: 'La contraseña actual ingresada es incorrecta.' });
+      }
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres.' });
+      }
+      const hashedNew = await bcrypt.hash(newPassword, 10);
+      const updated = await pool.query(
+        'UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4 RETURNING id, name, email, role',
+        [name || user.name, email || user.email, hashedNew, userId]
+      );
+      return res.json(updated.rows[0]);
+    } else {
+      const updated = await pool.query(
+        'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING id, name, email, role',
+        [name || user.name, email || user.email, userId]
+      );
+      return res.json(updated.rows[0]);
+    }
+  } catch (err) {
+    console.error('Error al actualizar perfil:', err);
+    res.status(400).json({ error: 'Error al actualizar el perfil' });
+  }
+});
+
 // Endpoint para Subida de Imágenes desde el CMS
 app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
   if (!req.file) {
