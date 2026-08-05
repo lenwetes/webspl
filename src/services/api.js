@@ -122,3 +122,15 @@ export async function deleteUserAdmin(token, userId) {
   });
   return await handleResponse(res, 'Error al eliminar usuario');
 }
+
+export async function uploadImage(token, file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch(`${API_BASE}/upload`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  return await handleResponse(res, 'Error al subir la imagen');
+}
+

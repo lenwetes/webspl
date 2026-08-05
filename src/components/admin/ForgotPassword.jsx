@@ -60,7 +60,7 @@ export default function ForgotPassword({ onBack }) {
             <p style={{ fontSize: 14, fontWeight: 700, color: '#15803d', margin: '0 0 6px' }}>
               ¡Correo enviado!
             </p>
-            <p style={{ fontSize: 12.5, color: '#4ade80', margin: '0 0 20px', color: '#166534' }}>
+            <p style={{ fontSize: 12.5, color: '#166534', margin: '0 0 20px' }}>
               Revisa tu bandeja de entrada (y spam). El enlace expira en 30 minutos.
             </p>
             <button

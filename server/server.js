@@ -1,15 +1,39 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
 import { pool, initDb } from './db.js';
 import { sendPasswordResetEmail } from './email.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const uploadsPath = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsPath),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, 'img-' + uniqueSuffix + ext);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Solo se permiten archivos de imagen'));
+  },
+});
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -37,7 +61,8 @@ function authenticateToken(req, res, next) {
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const cleanEmail = (email || '').trim();
+    const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Credenciales inválidas' });
     }
@@ -67,7 +92,8 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/forgot-password', async (req, res) => {
   const { email } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const cleanEmail = (email || '').trim();
+    const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'El correo electrónico no se encuentra registrado en el sistema.' });
     }
@@ -92,7 +118,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('forgot-password error:', err);
-    res.status(500).json({ error: 'Error al procesar la solicitud' });
+    res.status(500).json({ error: err.message || 'Error al procesar la solicitud' });
   }
 });
 
@@ -288,10 +314,21 @@ app.delete('/api/auth/users/:id', authenticateToken, async (req, res) => {
   }
 });
 
-/* ════════ SERVIR FRONTEND ════════ */
+// Endpoint para Subida de Imágenes desde el CMS
+app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No se recibió ningún archivo de imagen' });
+  }
+  const imageUrl = `/uploads/${req.file.filename}`;
+  res.json({ url: imageUrl });
+});
+
+/* ════════ SERVIR FRONTEND & ARCHIVOS SUBIDOS ════════ */
 const distPath = path.join(__dirname, '../dist');
 const publicPath = path.join(__dirname, '../public');
 
+// Servir directorio de imágenes subidas por el CMS
+app.use('/uploads', express.static(uploadsPath, { maxAge: '30d' }));
 // Servir archivos de dist/ (build de producción)
 app.use(express.static(distPath, { maxAge: '7d' }));
 // Fallback: servir public/ directamente (imágenes, assets estáticos)

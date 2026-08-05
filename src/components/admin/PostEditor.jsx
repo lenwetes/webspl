@@ -1,8 +1,10 @@
-﻿import React, { useState } from 'react';
-import { ArrowLeft, Save, Sparkles, Plus, Trash2, CheckCircle2, Image, BarChart2, Lightbulb } from 'lucide-react';
-import { savePostAdmin } from '../../services/api';
+import React, { useState } from 'react';
+import { ArrowLeft, Save, Sparkles, Plus, Trash2, CheckCircle2, Image as ImageIcon, BarChart2, Lightbulb, Upload, Loader2 } from 'lucide-react';
+import { savePostAdmin, uploadImage } from '../../services/api';
 
 export default function PostEditor({ token, post, onBack, onSaved }) {
+  const [uploading, setUploading] = useState(false);
+
   const [formData, setFormData] = useState({
     id: post?.id || null,
     title: post?.title || '',
@@ -55,6 +57,23 @@ export default function PostEditor({ token, post, onBack, onSaved }) {
     else if (val === 'software') { label = 'Software a Medida'; accent = '#8b5cf6'; accent_bg = 'rgba(139,92,246,0.10)'; }
 
     setFormData(prev => ({ ...prev, category: val, category_label: label, accent, accent_bg }));
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    try {
+      const data = await uploadImage(token, file);
+      if (data.url) {
+        setFormData(prev => ({ ...prev, cover_url: data.url }));
+      }
+    } catch (err) {
+      setError(err.message || 'Error al subir la imagen');
+    } finally {
+      setUploading(false);
+    }
   };
 
   // Highlights handlers
@@ -159,8 +178,46 @@ export default function PostEditor({ token, post, onBack, onSaved }) {
         {/* Portada & Opciones */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 20, marginBottom: 28 }}>
           <div>
-            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>Imagen de Portada (Ruta / URL)</label>
-            <input type="text" value={formData.cover_url} onChange={e => setFormData({ ...formData, cover_url: e.target.value })} placeholder="/blog1.png" style={{ width: '100%', padding: 12, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 12.5, outline: 'none', boxSizing: 'border-box' }} />
+            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: 6 }}>
+              Imagen de Portada (Subir o URL)
+            </label>
+
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+              <label style={{
+                background: 'linear-gradient(135deg, #f37021, #dc5c10)',
+                color: '#fff', padding: '9px 14px', borderRadius: 10,
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                boxShadow: '0 4px 12px rgba(243,112,33,0.25)', flexShrink: 0,
+              }}>
+                {uploading ? <Loader2 style={{ width: 15, height: 15, animation: 'spin 1s linear infinite' }} /> : <Upload style={{ width: 15, height: 15 }} />}
+                <span>{uploading ? 'Subiendo...' : 'Subir Imagen'}</span>
+                <input type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} style={{ display: 'none' }} />
+              </label>
+
+              <input
+                type="text"
+                value={formData.cover_url}
+                onChange={e => setFormData({ ...formData, cover_url: e.target.value })}
+                placeholder="https://... o /uploads/..."
+                style={{ flex: 1, padding: '9px 12px', borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 12.5, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {/* Vista previa de imagen */}
+            {formData.cover_url && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10, padding: 8, background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <img
+                  src={formData.cover_url}
+                  alt="Vista previa portada"
+                  onError={e => { e.target.style.display = 'none'; }}
+                  style={{ width: 70, height: 45, borderRadius: 8, objectFit: 'cover', border: '1px solid #cbd5e1' }}
+                />
+                <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, wordBreak: 'break-all' }}>
+                  Vista previa de portada activa
+                </span>
+              </div>
+            )}
           </div>
 
           <div>

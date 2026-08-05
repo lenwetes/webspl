@@ -1,30 +1,29 @@
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  secure: process.env.SMTP_SECURE === 'true', // true para puerto 465
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-/**
- * Envía email de recuperación de contraseña
- * @param {string} to - Correo destino
- * @param {string} name - Nombre del usuario
- * @param {string} resetUrl - URL completa con token de recuperación
- */
 export async function sendPasswordResetEmail(to, name, resetUrl) {
-  const fromName = process.env.EMAIL_FROM_NAME || 'SLP Soluciones Informáticas';
-  const fromAddr = process.env.SMTP_USER;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
 
-  await transporter.sendMail({
-    from: `"${fromName}" <${fromAddr}>`,
-    to,
-    subject: 'Recuperación de Contraseña — SLP Soluciones',
-    html: `
+  if (!smtpUser || !smtpPass) {
+    console.warn(`⚠️ [SMTP NO CONFIGURADO] Enlace para ${to}: ${resetUrl}`);
+    throw new Error('El servicio de correo SMTP no está configurado en las variables de entorno del VPS (SMTP_USER / SMTP_PASS).');
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: { user: smtpUser, pass: smtpPass },
+  });
+
+  const fromName = process.env.EMAIL_FROM_NAME || 'SLP Soluciones Informáticas';
+
+  try {
+    await transporter.sendMail({
+      from: `"${fromName}" <${smtpUser}>`,
+      to,
+      subject: 'Recuperación de Contraseña — SLP Soluciones',
+      html: `
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -87,6 +86,10 @@ export async function sendPasswordResetEmail(to, name, resetUrl) {
   </table>
 </body>
 </html>
-    `.trim(),
-  });
+      `.trim(),
+    });
+  } catch (err) {
+    console.error('❌ Error al enviar email con Nodemailer:', err);
+    throw new Error(`Error en el servidor de correo: ${err.message}`);
+  }
 }
