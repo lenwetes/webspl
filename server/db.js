@@ -64,6 +64,28 @@ export async function initDb() {
       console.log('✅ Usuario administrador predeterminado creado: admin@slp.com / admin123');
     }
 
+    // Migración: actualizar cover_url con rutas locales a URLs externas
+    await client.query(`
+      UPDATE posts SET cover_url = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80'
+      WHERE cover_url LIKE '/blog1%' OR cover_url LIKE '/blog_cyber%';
+    `);
+    await client.query(`
+      UPDATE posts SET cover_url = 'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=800&q=80'
+      WHERE cover_url LIKE '/blog2%';
+    `);
+    await client.query(`
+      UPDATE posts SET cover_url = 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80'
+      WHERE cover_url LIKE '/blog3%';
+    `);
+    await client.query(`
+      UPDATE posts SET cover_url = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80'
+      WHERE cover_url LIKE '/blog4%';
+    `);
+    await client.query(`
+      UPDATE posts SET cover_url = 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=800&q=80'
+      WHERE cover_url LIKE '/blog5%';
+    `);
+
     // Insertar artículos iniciales si la tabla posts está vacía
     const resPosts = await client.query('SELECT COUNT(*) FROM posts');
     if (parseInt(resPosts.rows[0].count, 10) === 0) {
@@ -76,7 +98,7 @@ export async function initDb() {
           'Ciberseguridad',
           true,
           true,
-          '/blog1.png',
+          'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80',
           'Blindaje Antifraude 2026: Cómo Proteger la Infraestructura Empresarial contra el Ransomware y Phishing',
           '15 Jul 2026',
           '7 min lectura',
@@ -96,7 +118,7 @@ export async function initDb() {
           'Inteligencia Artificial',
           false,
           true,
-          '/blog2.png',
+          'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=800&q=80',
           'Asistentes Virtuales con IA: Cómo Multiplicar las Ventas y Respuestas 24/7 en WhatsApp',
           '02 Ago 2026',
           '6 min lectura',
@@ -109,6 +131,26 @@ export async function initDb() {
           'Implemente asistentes con IA supervisada para canalizar prospectos calificados directamente hacia su equipo comercial.',
           '#f37021',
           'rgba(243,112,33,0.10)'
+        ),
+        (
+          'redes-lan-wan-empresariales',
+          'redes',
+          'Redes & CCTV',
+          false,
+          true,
+          'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80',
+          'Redes LAN/WAN Empresariales: Infraestructura Cat6A y Fibra Óptica para Alta Disponibilidad',
+          '20 Jul 2026',
+          '5 min lectura',
+          'Ing. Sergio Luis Pérez C.',
+          'Especialista en Redes & Telecomunicaciones',
+          'Diseño e implementación de redes empresariales con cableado estructurado Cat6A, fibra óptica, switches administrables y alta disponibilidad garantizada.',
+          '["Cableado Estructurado Cat6A", "Switches Administrables", "Alta Disponibilidad 99.9%"]'::jsonb,
+          '[{"metric": "Velocidad de Transferencia", "value": "10 Gbps"}, {"metric": "Disponibilidad Garantizada", "value": "99.9%"}, {"metric": "Tiempo de Instalación", "value": "48h"}]'::jsonb,
+          '[{"heading": "1. Diseño de Red Empresarial", "body": "Una red bien diseñada es la columna vertebral de la productividad empresarial. Implementamos topologías estrella con redundancia activa."}]'::jsonb,
+          'Contáctenos para una evaluación gratuita de su infraestructura de red actual y un plan de mejora personalizado.',
+          '#7c3aed',
+          'rgba(124,58,237,0.10)'
         );
       `);
       console.log('✅ Artículos de ejemplo inicializados en PostgreSQL.');
