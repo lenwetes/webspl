@@ -16,13 +16,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
-# Copiar paquetes e instalar dependencias de backend
+# Copiar configuración e instalar dependencias del servidor backend
 COPY server/package*.json ./server/
 WORKDIR /app/server
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 WORKDIR /app
-# Copiar código del backend y bundle del frontend
 COPY server/ ./server/
 COPY --from=builder /app/dist ./dist
 
