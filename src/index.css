@@ -1,0 +1,279 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #f5f7fa;
+    color: #1e293b;
+    font-family: 'Roboto', sans-serif;
+  }
+}
+
+/* HostDime Tech Hero Background */
+.hostdime-hero-bg {
+  background-color: #0f1e33;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(32, 201, 151, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 80% 20%, rgba(243, 112, 33, 0.1) 0%, transparent 50%),
+    linear-gradient(180deg, #162a45 0%, #0f1e33 100%);
+  position: relative;
+}
+
+.hostdime-hero-grid {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* 3D Perspective Container */
+.perspective-1000 {
+  perspective: 1200px;
+}
+
+/* HostDime 3D Dark Tech Module Cards */
+.hostdime-card-dark {
+  background: linear-gradient(145deg, #111d2e 0%, #0d1726 60%, #0a111c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              border-color 0.35s ease;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 15px 30px -8px rgba(15, 30, 51, 0.6),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Specific Card Glow Borders on Hover */
+.card-glow-purple:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 
+    0 30px 60px -12px rgba(168, 85, 247, 0.35),
+    0 20px 40px -10px rgba(15, 23, 42, 0.9),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.card-glow-orange:hover {
+  border-color: rgba(243, 112, 33, 0.6);
+  box-shadow: 
+    0 30px 60px -12px rgba(243, 112, 33, 0.35),
+    0 20px 40px -10px rgba(15, 23, 42, 0.9),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.card-glow-teal:hover {
+  border-color: rgba(32, 201, 151, 0.6);
+  box-shadow: 
+    0 30px 60px -12px rgba(32, 201, 151, 0.35),
+    0 20px 40px -10px rgba(15, 23, 42, 0.9),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Metallic top edge highlight */
+.hostdime-card-dark::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(243, 112, 33, 0.8), rgba(32, 201, 151, 0.8), transparent);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+/* Light glare reflection sweep effect */
+.hostdime-card-dark::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.1) 55%,
+    transparent 80%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.75s ease-in-out;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.hostdime-card-dark:hover::before {
+  left: 180%;
+}
+
+/* Icon 3D Floating Pop Effect */
+.card-icon-3d {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.hostdime-card-dark:hover .card-icon-3d {
+  transform: translateZ(32px) scale(1.15) rotate(-4deg);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
+/* Infinite Marquee Animations */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-reverse 40s linear infinite;
+}
+
+.paused-marquee {
+  animation-play-state: paused !important;
+}
+
+/* Animated Tech Background Orbs & Circuit Pattern */
+@keyframes floatOrb1 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(70px, -45px) scale(1.2); }
+  66% { transform: translate(-35px, 35px) scale(0.9); }
+}
+
+@keyframes floatOrb2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(-60px, 50px) scale(1.25); }
+  66% { transform: translate(45px, -35px) scale(0.85); }
+}
+
+@keyframes floatOrb3 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(30px, -60px) scale(1.15); }
+}
+
+.animate-orb-1 {
+  animation: floatOrb1 18s ease-in-out infinite;
+}
+
+.animate-orb-2 {
+  animation: floatOrb2 22s ease-in-out infinite;
+}
+
+.animate-orb-3 {
+  animation: floatOrb3 20s ease-in-out infinite;
+}
+
+.tech-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(243, 112, 33, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(32, 201, 151, 0.06) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/* Tech Marquee Card 3D Style */
+.tech-marquee-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 20px -5px rgba(15, 30, 51, 0.05);
+}
+
+.tech-marquee-card:hover {
+  transform: translateY(-6px) scale(1.04);
+  box-shadow: 0 20px 35px -8px rgba(15, 30, 51, 0.15);
+  border-color: rgba(243, 112, 33, 0.4);
+}
+
+/* Ribbons with 3D Depth */
+.hostdime-ribbon-teal {
+  background: linear-gradient(180deg, #20c997 0%, #17ab80 100%);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hostdime-ribbon-teal:hover {
+  background: linear-gradient(180deg, #12b886 0%, #0e966c 100%);
+}
+
+.hostdime-ribbon-orange {
+  background: linear-gradient(180deg, #f37021 0%, #d95d13 100%);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hostdime-ribbon-orange:hover {
+  background: linear-gradient(180deg, #d95d13 0%, #b84c0c 100%);
+}
+
+.hostdime-ribbon-purple {
+  background: linear-gradient(180deg, #9333ea 0%, #7e22ce 100%);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hostdime-ribbon-purple:hover {
+  background: linear-gradient(180deg, #7e22ce 0%, #6b21a8 100%);
+}
+
+/* HostDime Buttons */
+.btn-hostdime-orange {
+  background-color: #f37021;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-hostdime-orange:hover {
+  background-color: #d95d13;
+  box-shadow: 0 6px 16px rgba(243, 112, 33, 0.3);
+}
+
+.btn-hostdime-teal {
+  background-color: #20c997;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-hostdime-teal:hover {
+  background-color: #12b886;
+  box-shadow: 0 6px 16px rgba(32, 201, 151, 0.3);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
