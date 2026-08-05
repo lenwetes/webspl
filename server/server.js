@@ -213,7 +213,12 @@ app.delete('/api/auth/users/:id', authenticateToken, async (req, res) => {
 
 /* ════════ SERVIR FRONTEND ════════ */
 const distPath = path.join(__dirname, '../dist');
-app.use(express.static(distPath));
+const publicPath = path.join(__dirname, '../public');
+
+// Servir archivos de dist/ (build de producción)
+app.use(express.static(distPath, { maxAge: '7d' }));
+// Fallback: servir public/ directamente (imágenes, assets estáticos)
+app.use(express.static(publicPath, { maxAge: '7d' }));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));

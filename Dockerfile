@@ -24,6 +24,8 @@ RUN npm install --omit=dev
 WORKDIR /app
 COPY server/ ./server/
 COPY --from=builder /app/dist ./dist
+# Copiar carpeta public/ al runner para servir imágenes directamente
+COPY public/ ./public/
 
 EXPOSE 4000
 
