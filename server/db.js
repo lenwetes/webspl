@@ -53,7 +53,20 @@ export async function initDb() {
       );
     `);
 
+    // 3. Tabla de Tokens de Recuperación de Contraseña
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(128) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Crear admin inicial si no existe
+
     const resUsers = await client.query('SELECT COUNT(*) FROM users');
     if (parseInt(resUsers.rows[0].count, 10) === 0) {
       const hashedPass = await bcrypt.hash('admin123', 10);

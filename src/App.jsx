@@ -16,20 +16,28 @@ import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
+import ForgotPassword from './components/admin/ForgotPassword';
+import ResetPassword from './components/admin/ResetPassword';
 import { MessageCircle } from 'lucide-react';
 
 export default function App() {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [quoteInitialService, setQuoteInitialService] = useState('');
-  const [page, setPage] = useState('home'); // 'home' | 'blog' | 'admin' | 'admin-login'
+
+  // Detectar si la URL tiene ?token= para reset de contraseña
+  const urlParams = new URLSearchParams(window.location.search);
+  const resetToken = urlParams.get('token');
+  const isResetPath = window.location.pathname === '/reset-password';
+
+  const [page, setPage] = useState(() => {
+    if (isResetPath && resetToken) return 'reset-password';
+    return 'home'; // 'home' | 'blog' | 'admin' | 'admin-login' | 'forgot-password' | 'reset-password'
+  });
 
   const [adminToken, setAdminToken] = useState(localStorage.getItem('slp_admin_token') || '');
   const [adminUser, setAdminUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('slp_admin_user') || 'null');
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(localStorage.getItem('slp_admin_user') || 'null'); }
+    catch { return null; }
   });
 
   const handleOpenQuote = (serviceTitle = '') => {
@@ -37,15 +45,8 @@ export default function App() {
     setIsQuoteOpen(true);
   };
 
-  const goToBlog = () => {
-    setPage('blog');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const goHome = () => {
-    setPage('home');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const goToBlog = () => { setPage('blog'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const goHome = () => { setPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   const handleLoginSuccess = (token, user) => {
     setAdminToken(token);
@@ -63,10 +64,20 @@ export default function App() {
 
   /* ── Router simple ── */
 
+  // Reset de contraseña (accedido por link del correo)
+  if (page === 'reset-password') {
+    return <ResetPassword token={resetToken} onSuccess={() => setPage('admin-login')} />;
+  }
+
+  // Recuperar contraseña
+  if (page === 'forgot-password') {
+    return <ForgotPassword onBack={() => setPage('admin-login')} />;
+  }
+
   // 1. Panel CMS Admin Dashboard
   if (page === 'admin') {
     if (!adminToken) {
-      return <AdminLogin onLoginSuccess={handleLoginSuccess} onCancel={goHome} />;
+      return <AdminLogin onLoginSuccess={handleLoginSuccess} onCancel={goHome} onForgotPassword={() => setPage('forgot-password')} />;
     }
     return (
       <AdminDashboard
@@ -80,7 +91,7 @@ export default function App() {
 
   // 2. Login Admin
   if (page === 'admin-login') {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} onCancel={goHome} />;
+    return <AdminLogin onLoginSuccess={handleLoginSuccess} onCancel={goHome} onForgotPassword={() => setPage('forgot-password')} />;
   }
 
   // 3. Blog Page pública

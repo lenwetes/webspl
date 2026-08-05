@@ -1,9 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { loginAdmin } from '../../services/api';
 import SLPLogo from '../SLPLogo';
 
-export default function AdminLogin({ onLoginSuccess, onCancel }) {
+export default function AdminLogin({ onLoginSuccess, onCancel, onForgotPassword }) {
   const [email, setEmail] = useState('postgres@slp.com');
   const [password, setPassword] = useState('admin');
   const [loading, setLoading] = useState(false);
@@ -112,6 +112,16 @@ export default function AdminLogin({ onLoginSuccess, onCancel }) {
             <span>{loading ? 'Verificando...' : 'Ingresar al CMS'}</span>
             <ArrowRight style={{ width: 16, height: 16 }} />
           </button>
+
+          <div style={{ marginTop: 14, textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              style={{ background: 'transparent', border: 'none', color: '#f37021', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
         </form>
 
         <div style={{ marginTop: 24, textAlign: 'center' }}>

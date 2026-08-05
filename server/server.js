@@ -2,9 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { pool, initDb } from './db.js';
+import { sendPasswordResetEmail } from './email.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +60,82 @@ app.post('/api/auth/login', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Error en el servidor al iniciar sesión' });
+  }
+});
+
+// Solicitar recuperación de contraseña
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    // Siempre responder OK para no revelar si el email existe
+    if (result.rows.length === 0) {
+      return res.json({ ok: true });
+    }
+    const user = result.rows[0];
+    const token = crypto.randomBytes(48).toString('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+
+    // Invalidar tokens previos del mismo usuario
+    await pool.query(
+      'UPDATE password_reset_tokens SET used = true WHERE user_id = $1 AND used = false',
+      [user.id]
+    );
+    await pool.query(
+      'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
+      [user.id, token, expiresAt]
+    );
+
+    const baseUrl = process.env.APP_URL || 'http://slpsoluciones.cloud';
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+    await sendPasswordResetEmail(user.email, user.name, resetUrl);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('forgot-password error:', err);
+    res.status(500).json({ error: 'Error al procesar la solicitud' });
+  }
+});
+
+// Validar token de recuperación
+app.get('/api/auth/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM password_reset_tokens WHERE token = $1 AND used = false AND expires_at > NOW()',
+      [token]
+    );
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Enlace inválido o expirado' });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al validar el token' });
+  }
+});
+
+// Restablecer contraseña con token
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password || password.length < 8) {
+    return res.status(400).json({ error: 'Token y contraseña (mín. 8 caracteres) requeridos' });
+  }
+  try {
+    const result = await pool.query(
+      'SELECT * FROM password_reset_tokens WHERE token = $1 AND used = false AND expires_at > NOW()',
+      [token]
+    );
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Enlace inválido o expirado' });
+    }
+    const { user_id, id: tokenId } = result.rows[0];
+    const hashed = await bcrypt.hash(password, 10);
+    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashed, user_id]);
+    await pool.query('UPDATE password_reset_tokens SET used = true WHERE id = $1', [tokenId]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('reset-password error:', err);
+    res.status(500).json({ error: 'Error al restablecer contraseña' });
   }
 });
 
