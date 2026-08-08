@@ -229,8 +229,8 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-brand-50 border border-brand-100 text-brand-800 text-xs">
-                  <span className="font-bold block mb-1">Resumen del Pedido:</span>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 text-xs">
+                  <span className="font-bold block mb-1 text-slate-900">Resumen del Pedido:</span>
                   <p>• Servicio: {formData.service}</p>
                   <p>• Alcance: {formData.scale}</p>
                   <p>• Tiempo: {formData.urgency}</p>
@@ -246,9 +246,10 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
                   </button>
                   <button
                     type="submit"
-                    className="px-7 py-3 rounded-xl bg-gradient-to-r from-brand-600 via-brand-accent to-brand-cyan text-white font-bold text-xs shadow-lg shadow-brand-500/25 hover:scale-105 transition-all"
+                    className="px-7 py-3 rounded-xl bg-gradient-to-r from-hostdime-orange to-amber-600 text-white font-extrabold text-xs shadow-lg shadow-orange-500/25 hover:scale-105 transition-all flex items-center gap-2 cursor-pointer"
                   >
-                    Enviar Solicitud
+                    <Send className="w-4 h-4" />
+                    <span>Enviar Solicitud</span>
                   </button>
                 </div>
               </form>
