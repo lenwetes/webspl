@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Code2, Server, Cpu, Network, ShieldCheck, Database, 
   Video, Laptop, HardDrive, Wifi, Smartphone, Layers, 
-  Sparkles, Play, Pause, Monitor, Zap, Globe, Lock, Shield
+  Sparkles, Monitor, Zap, Globe
 } from 'lucide-react';
 
 export default function Partners() {
@@ -82,21 +82,9 @@ export default function Partners() {
           La mejor tecnología para impulsar su empresa
         </h2>
 
-        <p className="text-sm text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed mb-6">
+        <p className="text-sm text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
           Desarrollamos soluciones con lenguajes de programación modernos, IA avanzada, componentes de red industrial y comercializamos hardware de marcas globales certificadas.
         </p>
-
-        {/* Play / Pause Interactive Controls */}
-        <div className="flex items-center justify-center gap-3">
-          <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 border border-slate-200/90 shadow-sm hover:border-slate-300 text-slate-700 text-xs font-bold backdrop-blur-md transition-all"
-            title={isPaused ? 'Reanudar carrusel' : 'Pausar carrusel'}
-          >
-            {isPaused ? <Play className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" /> : <Pause className="w-3.5 h-3.5 text-hostdime-orange fill-hostdime-orange" />}
-            <span>{isPaused ? 'Reanudar Carrusel' : 'Pausar Carrusel'}</span>
-          </button>
-        </div>
 
       </div>
 
@@ -115,6 +103,8 @@ export default function Partners() {
               return (
                 <div
                   key={`r1-${idx}`}
+                  onMouseEnter={() => setIsPaused(true)}
+                  onMouseLeave={() => setIsPaused(false)}
                   className="tech-marquee-card px-6 py-4 flex items-center gap-4 flex-shrink-0 min-w-[260px] group cursor-pointer"
                 >
                   <div className={`w-12 h-12 rounded-xl border flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${item.color}`}>
@@ -142,6 +132,8 @@ export default function Partners() {
               return (
                 <div
                   key={`r2-${idx}`}
+                  onMouseEnter={() => setIsPaused(true)}
+                  onMouseLeave={() => setIsPaused(false)}
                   className="tech-marquee-card px-6 py-4 flex items-center gap-4 flex-shrink-0 min-w-[260px] group cursor-pointer"
                 >
                   <div className={`w-12 h-12 rounded-xl border flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${item.color}`}>
