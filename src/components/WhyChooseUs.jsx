@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Award, Sliders, Cpu, Headset, ShieldCheck, CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
 
 function useReveal(threshold = 0.1) {
@@ -265,7 +265,7 @@ function BenefitCard({ benefit, index }) {
   );
 }
 
-export default function WhyChooseUs({ onOpenQuote }) {
+export default function WhyChooseUs({ onOpenQuote, compact = false, onViewFull }) {
   const [headerRef, headerVisible] = useReveal(0.1);
   const [ctaRef, ctaVisible] = useReveal(0.1);
 
@@ -349,11 +349,12 @@ export default function WhyChooseUs({ onOpenQuote }) {
           className="wcu-grid"
           style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18, marginBottom: 60 }}
         >
-          {BENEFITS.map((b, i) => (
+          {(compact ? BENEFITS.slice(0, 4) : BENEFITS).map((b, i) => (
             <BenefitCard key={i} benefit={b} index={i} />
           ))}
 
-          {/* CTA Card */}
+          {/* CTA Card - solo en modo completo */}
+          {!compact && (
           <div
             ref={ctaRef}
             style={{
@@ -409,7 +410,39 @@ export default function WhyChooseUs({ onOpenQuote }) {
               <ArrowRight style={{ width: 14, height: 14 }} />
             </button>
           </div>
+          )}
         </div>
+
+        {/* CTA para ver página completa en modo compacto */}
+        {compact && onViewFull && (
+          <div style={{ textAlign: "center", marginTop: 48 }}>
+            <button
+              onClick={onViewFull}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "14px 32px",
+                borderRadius: 12,
+                border: "1.5px solid rgba(243,112,33,0.5)",
+                background: "linear-gradient(135deg, #f37021 0%, #d95d13 100%)",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                boxShadow: "0 8px 24px rgba(243,112,33,0.35)",
+                transition: "all 0.25s ease"
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.03)")}
+              onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}
+            >
+              <span>Descubrir Todas las Ventajas</span>
+              <ArrowRight style={{ width: 15, height: 15 }} />
+            </button>
+          </div>
+        )}
 
       </div>
     </section>

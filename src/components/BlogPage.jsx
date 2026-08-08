@@ -6,6 +6,7 @@ import {
 import { fetchPublicPosts } from '../services/api';
 import { ARTICLES as FALLBACK_ARTICLES, CATEGORIES } from '../data/blogData';
 import SLPLogo from './SLPLogo';
+import PageHeader from './PageHeader';
 
 /* ── Article Reader Modal ── */
 function ArticleModal({ article, onClose, onOpenQuote }) {
@@ -167,7 +168,8 @@ function ArticleCard({ art, onRead }) {
 /* ══════════════════════════════════════
    BlogPage — Página independiente completa
 ══════════════════════════════════════ */
-export default function BlogPage({ onBack, onOpenQuote }) {
+export default function BlogPage(props) {
+  const { onBack, onOpenQuote, onOpenAbout, onOpenServices, onOpenBlog } = props;
   const [articles, setArticles] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [activeCategory, setActiveCategory] = useState('todos');
@@ -209,52 +211,28 @@ export default function BlogPage({ onBack, onOpenQuote }) {
         }
       `}</style>
 
-      {/* ── TOP BAR ── */}
-      <div style={{ background: '#0f1e33', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '12px 24px' }}>
-        <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-            onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
-            <ArrowLeft style={{ width: 16, height: 16 }} />
-            Volver al Inicio
-          </button>
-          <SLPLogo size="small" />
-          {onOpenQuote && (
-            <button onClick={() => onOpenQuote()} style={{ padding: '8px 20px', borderRadius: 10, border: 'none', background: '#f37021', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer', letterSpacing: '0.05em' }}>
-              Solicitar Cotización
-            </button>
-          )}
-        </div>
-      </div>
+      {/* Corporate Page Banner Header */}
+      <PageHeader
+        {...props}
+        title="Blog & Publicaciones"
+        breadcrumb="BLOG"
+        badgeText="Conocimiento & Transformación TI"
+        bgImage="/banner-blog.png"
+        subtitle="Artículos con métricas reales, guías de ciberseguridad, adopción de IA y recomendaciones de arquitectura TI."
+        onGoHome={onBack || props.onGoHome}
+      />
 
-      {/* ── HERO HEADER ── */}
-      <div style={{ background: 'linear-gradient(135deg, #0f1e33 0%, #162a45 100%)', padding: '64px 24px 48px', textAlign: 'center' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#f37021', padding: '4px 14px', borderRadius: 20, background: 'rgba(243,112,33,0.12)', border: '1px solid rgba(243,112,33,0.25)', marginBottom: 16 }}>
-            <Sparkles style={{ width: 11, height: 11 }} />
-            Publicaciones & Conocimiento
-          </span>
-          <h1 style={{ fontSize: 'clamp(28px,5vw,52px)', fontWeight: 900, color: '#ffffff', margin: '0 0 16px', lineHeight: 1.15 }}>
-            Blog de Ingeniería &amp;<br />
-            <span style={{ background: 'linear-gradient(90deg, #20c997, #f37021)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Transformación TI
-            </span>
-          </h1>
-          <p style={{ fontSize: 15, color: 'rgba(203,213,225,0.85)', lineHeight: 1.7, margin: '0 0 32px' }}>
-            Artículos con métricas reales, guías de ciberseguridad, adopción de Inteligencia Artificial y recomendaciones de infraestructura para empresas.
-          </p>
-
-          {/* Search */}
-          <div style={{ position: 'relative', maxWidth: 520, margin: '0 auto' }}>
-            <Search style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#64748b' }} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Buscar tema (ransomware, IA, cableado Cat6, software)..."
-              style={{ width: '100%', padding: '14px 16px 14px 50px', borderRadius: 14, background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0f1e33', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-            />
-          </div>
+      {/* ── SEARCH BAR SUBSECTION ── */}
+      <div style={{ background: '#0f1e33', padding: '24px 24px 32px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 520, margin: '0 auto', position: 'relative' }}>
+          <Search style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#64748b' }} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Buscar tema (ransomware, IA, cableado Cat6, software)..."
+            style={{ width: '100%', padding: '14px 16px 14px 50px', borderRadius: 14, background: '#ffffff', border: '1.5px solid #cbd5e1', color: '#0f1e33', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+          />
         </div>
       </div>
 

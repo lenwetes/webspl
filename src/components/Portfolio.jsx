@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, CheckCircle2, FolderGit2, ArrowRight } from 'lucide-react';
 
-export default function Portfolio({ onOpenQuote }) {
+export default function Portfolio({ onOpenQuote, compact = false, onViewFull }) {
   const [filter, setFilter] = useState('todos');
 
   const projects = [
@@ -47,7 +47,7 @@ export default function Portfolio({ onOpenQuote }) {
     }
   ];
 
-  const filteredProjects = filter === 'todos' ? projects : projects.filter(p => p.category === filter);
+  const displayProjects = compact ? projects.slice(0, 2) : (filter === 'todos' ? projects : projects.filter(p => p.category === filter));
 
   return (
     <section id="portafolio" className="py-24 bg-white border-b border-slate-200">
@@ -66,32 +66,34 @@ export default function Portfolio({ onOpenQuote }) {
           </p>
         </div>
 
-        {/* Filter Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
-          {[
-            { id: 'todos', label: 'Todos' },
-            { id: 'software', label: 'Software' },
-            { id: 'ia', label: 'Inteligencia Artificial' },
-            { id: 'redes', label: 'Redes LAN/WLAN' },
-            { id: 'videovigilancia', label: 'Videovigilancia' },
-          ].map((btn) => (
-            <button
-              key={btn.id}
-              onClick={() => setFilter(btn.id)}
-              className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
-                filter === btn.id
-                  ? 'bg-hostdime-navy text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
+        {/* Filter Bar - solo en modo completo */}
+        {!compact && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
+            {[
+              { id: 'todos', label: 'Todos' },
+              { id: 'software', label: 'Software' },
+              { id: 'ia', label: 'Inteligencia Artificial' },
+              { id: 'redes', label: 'Redes LAN/WLAN' },
+              { id: 'videovigilancia', label: 'Videovigilancia' },
+            ].map((btn) => (
+              <button
+                key={btn.id}
+                onClick={() => setFilter(btn.id)}
+                className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
+                  filter === btn.id
+                    ? 'bg-hostdime-navy text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredProjects.map((project) => (
+          {displayProjects.map((project) => (
             <div
               key={project.id}
               className="hostdime-card flex flex-col justify-between"
@@ -143,6 +145,19 @@ export default function Portfolio({ onOpenQuote }) {
             </div>
           ))}
         </div>
+
+        {/* CTA para ver página completa */}
+        {compact && onViewFull && (
+          <div className="text-center mt-12">
+            <button
+              onClick={onViewFull}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-hostdime-navy text-white text-xs font-extrabold uppercase tracking-wider shadow-lg hover:bg-slate-800 hover:scale-105 transition-all"
+            >
+              <span>Ver Portafolio Completo</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
       </div>
     </section>

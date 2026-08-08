@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
   PenTool,
@@ -145,7 +145,7 @@ const PROCESS_STEPS = [
   }
 ];
 
-export default function Process({ onOpenQuote }) {
+export default function Process({ onOpenQuote, compact = false, onViewFull }) {
   const [activeStep, setActiveStep] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(false);
   const [headerRef, headerVisible] = useReveal(0.1);
@@ -272,29 +272,31 @@ export default function Process({ onOpenQuote }) {
             Haga clic en cualquier nodo del mapa para explorar en detalle cada fase secuencial de nuestra metodología de trabajo.
           </p>
 
-          {/* Auto-Play Controller */}
-          <div style={{ marginTop: 18, display: "flex", justifyContent: "center", gap: 10 }}>
-            <button
-              onClick={() => setIsAutoPlay(!isAutoPlay)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 11,
-                fontWeight: 800,
-                color: isAutoPlay ? "#20c997" : "#475569",
-                background: isAutoPlay ? "rgba(32,201,151,0.12)" : "#f1f5f9",
-                border: `1.5px solid ${isAutoPlay ? "#20c99750" : "#cbd5e1"}`,
-                padding: "6px 16px",
-                borderRadius: 20,
-                cursor: "pointer",
-                transition: "all 0.25s ease"
-              }}
-            >
-              {isAutoPlay ? <Pause style={{ width: 13, height: 13 }} /> : <Play style={{ width: 13, height: 13 }} />}
-              {isAutoPlay ? "Pausar Animación" : "Iniciar Recorrido Animado"}
-            </button>
-          </div>
+          {/* Auto-Play Controller - solo en modo completo */}
+          {!compact && (
+            <div style={{ marginTop: 18, display: "flex", justifyContent: "center", gap: 10 }}>
+              <button
+                onClick={() => setIsAutoPlay(!isAutoPlay)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: isAutoPlay ? "#20c997" : "#475569",
+                  background: isAutoPlay ? "rgba(32,201,151,0.12)" : "#f1f5f9",
+                  border: `1.5px solid ${isAutoPlay ? "#20c99750" : "#cbd5e1"}`,
+                  padding: "6px 16px",
+                  borderRadius: 20,
+                  cursor: "pointer",
+                  transition: "all 0.25s ease"
+                }}
+              >
+                {isAutoPlay ? <Pause style={{ width: 13, height: 13 }} /> : <Play style={{ width: 13, height: 13 }} />}
+                {isAutoPlay ? "Pausar Animación" : "Iniciar Recorrido Animado"}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* CONCEPT MAP SVG CONNECTOR & 5 NODES */}
@@ -453,7 +455,8 @@ export default function Process({ onOpenQuote }) {
           </div>
         </div>
 
-        {/* EXPANDED 3D CONCEPT MAP DETAIL STAGE */}
+        {/* EXPANDED 3D CONCEPT MAP DETAIL STAGE - solo en modo completo */}
+        {!compact && (
         <div
           style={{
             background: "#ffffff",
@@ -723,6 +726,38 @@ export default function Process({ onOpenQuote }) {
           </div>
 
         </div>
+        )}
+
+        {/* CTA para ver página completa en modo compacto */}
+        {compact && onViewFull && (
+          <div style={{ textAlign: "center", marginTop: 48 }}>
+            <button
+              onClick={onViewFull}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "14px 32px",
+                borderRadius: 12,
+                border: "none",
+                background: "linear-gradient(135deg, #f37021 0%, #d95d13 100%)",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                boxShadow: "0 8px 24px rgba(243,112,33,0.35)",
+                transition: "all 0.25s ease"
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.03)")}
+              onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}
+            >
+              <span>Explorar Metodología Completa</span>
+              <ArrowRight style={{ width: 15, height: 15 }} />
+            </button>
+          </div>
+        )}
 
       </div>
     </section>

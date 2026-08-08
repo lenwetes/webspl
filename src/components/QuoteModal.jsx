@@ -52,13 +52,17 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
 
         {!completed ? (
           <div>
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 via-brand-accent to-brand-cyan text-white flex items-center justify-center shadow-md">
-                <Calculator className="w-6 h-6" />
+            {/* Header con Logo de la Compañía */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 p-2 flex items-center justify-center shadow-lg flex-shrink-0 group">
+                <img
+                  src="/logo-bulb.png"
+                  alt="SLP Soluciones Informáticas"
+                  className="w-full h-full object-contain drop-shadow-md group-hover:scale-105 transition-transform"
+                />
               </div>
               <div>
-                <span className="text-[10px] font-extrabold text-brand-600 uppercase tracking-widest block">
+                <span className="text-[10px] font-extrabold text-hostdime-orange uppercase tracking-widest block">
                   Paso {step} de 3
                 </span>
                 <h3 className="font-display text-2xl font-bold text-slate-900">

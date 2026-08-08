@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Phone, Mail, User, Send, CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export default function Contact({ onOpenQuote }) {
+export default function Contact({ onOpenQuote, compact = false, onViewFull }) {
   const [formData, setFormData] = useState({
     nombre: '',
     empresa: '',
@@ -221,6 +221,19 @@ export default function Contact({ onOpenQuote }) {
           </div>
 
         </div>
+
+        {/* CTA para ver página completa en modo compacto */}
+        {compact && onViewFull && (
+          <div className="text-center mt-12">
+            <button
+              onClick={onViewFull}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-hostdime-orange text-white text-xs font-extrabold uppercase tracking-wider shadow-lg hover:scale-105 transition-all"
+            >
+              <span>Ir a Formulario de Contacto Completo</span>
+            </button>
+          </div>
+        )}
+
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { HelpCircle, ChevronDown, Search, PhoneCall, Sparkles, MessageSquare, ShieldCheck, Mail, ArrowRight } from "lucide-react";
 
 function useReveal(threshold = 0.1) {
@@ -97,14 +97,16 @@ const CATEGORIES = [
   { id: "comercial", label: "Comercial & Garantía" }
 ];
 
-export default function FAQ({ onOpenQuote }) {
+export default function FAQ({ onOpenQuote, compact = false, onViewFull }) {
   const [openId, setOpenId] = useState(1);
   const [activeCategory, setActiveCategory] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [headerRef, headerVisible] = useReveal(0.1);
   const [gridRef, gridVisible] = useReveal(0.1);
 
-  const filtered = FAQ_DATA.filter((item) => {
+  const dataSource = compact ? FAQ_DATA.slice(0, 4) : FAQ_DATA;
+  const filtered = dataSource.filter((item) => {
+    if (compact) return true;
     const matchesCategory = activeCategory === "todos" || item.category === activeCategory;
     const matchesSearch =
       item.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -230,48 +232,53 @@ export default function FAQ({ onOpenQuote }) {
             Preguntas Frecuentes (FAQ)
           </h2>
 
-          <p style={{ fontSize: 13.5, color: "rgba(203,213,225,0.75)", lineHeight: 1.7, margin: "0 0 28px" }}>
-            Respuestas directas y transparentes sobre nuestro modelo de trabajo, soporte continuo, desarrollo e infraestructura.
-          </p>
+          {!compact && (
+            <p style={{ fontSize: 13.5, color: "rgba(203,213,225,0.75)", lineHeight: 1.7, margin: "0 0 28px" }}>
+              Respuestas directas y transparentes sobre nuestro modelo de trabajo, soporte continuo, desarrollo e infraestructura.
+            </p>
+          )}
 
-          {/* Dark Glass Search Bar */}
-          <div style={{ position: "relative", maxWidth: 480, margin: "0 auto" }}>
-            <Search
-              style={{
-                position: "absolute",
-                left: 16,
-                top: "50%",
-                transform: "translateY(-50%)",
-                width: 18,
-                height: 18,
-                color: "#20c997"
-              }}
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar (ej. soporte remoto, desarrollo, cámaras, cotización)..."
-              style={{
-                width: "100%",
-                padding: "14px 16px 14px 48px",
-                borderRadius: 14,
-                background: "rgba(255,255,255,0.06)",
-                border: "1.5px solid rgba(255,255,255,0.14)",
-                color: "#ffffff",
-                fontSize: 13,
-                outline: "none",
-                backdropFilter: "blur(12px)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
-                transition: "all 0.25s ease"
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "#20c997")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.14)")}
-            />
-          </div>
+          {/* Dark Glass Search Bar - solo en modo completo */}
+          {!compact && (
+            <div style={{ position: "relative", maxWidth: 480, margin: "0 auto" }}>
+              <Search
+                style={{
+                  position: "absolute",
+                  left: 16,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 18,
+                  height: 18,
+                  color: "#20c997"
+                }}
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar (ej. soporte remoto, desarrollo, cámaras, cotización)..."
+                style={{
+                  width: "100%",
+                  padding: "14px 16px 14px 48px",
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1.5px solid rgba(255,255,255,0.14)",
+                  color: "#ffffff",
+                  fontSize: 13,
+                  outline: "none",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
+                  transition: "all 0.25s ease"
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "#20c997")}
+                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.14)")}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Category Filters Pill Bar */}
+        {/* Category Filters Pill Bar - solo en modo completo */}
+        {!compact && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 44 }}>
           {CATEGORIES.map((cat) => (
             <button
@@ -295,6 +302,7 @@ export default function FAQ({ onOpenQuote }) {
             </button>
           ))}
         </div>
+        )}
 
         {/* HORIZONTAL 2-COLUMN GRID OF DARK FAQ CARDS */}
         <div
@@ -503,59 +511,92 @@ export default function FAQ({ onOpenQuote }) {
           </div>
         </div>
 
-        {/* Bottom CTA Direct Support Banner */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, rgba(243,112,33,0.12) 0%, rgba(32,201,151,0.08) 100%)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: 20,
-            padding: "28px 36px",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 20,
-            backdropFilter: "blur(12px)"
-          }}
-        >
-          <div>
-            <span style={{ fontSize: 10, fontWeight: 800, color: "#f37021", textTransform: "uppercase", letterSpacing: "0.12em", display: "block", marginBottom: 4 }}>
-              ¿Necesita una solución personalizada?
-            </span>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#ffffff", margin: 0 }}>
-              ¿Tiene una consulta técnica o requiere diagnóstico?
-            </h3>
-            <p style={{ fontSize: 12.5, color: "rgba(203,213,225,0.75)", margin: "4px 0 0" }}>
-              Llámenos directamente al PBX 321 445 1817 o envíenos sus requerimientos.
-            </p>
-          </div>
-
-          <button
-            onClick={() => onOpenQuote && onOpenQuote("Consulta desde FAQ")}
+        {/* Bottom CTA - solo en modo completo */}
+        {!compact && (
+          <div
             style={{
-              padding: "13px 28px",
-              borderRadius: 12,
-              border: "none",
-              background: "linear-gradient(135deg, #f37021 0%, #d95d13 100%)",
-              color: "#ffffff",
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: "pointer",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              boxShadow: "0 8px 24px rgba(243,112,33,0.35)",
+              background: "linear-gradient(135deg, rgba(243,112,33,0.12) 0%, rgba(32,201,151,0.08) 100%)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 20,
+              padding: "28px 36px",
               display: "flex",
+              flexWrap: "wrap",
               alignItems: "center",
-              gap: 8,
-              transition: "all 0.25s ease"
+              justifyContent: "space-between",
+              gap: 20,
+              backdropFilter: "blur(12px)"
             }}
-            onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-            onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0)")}
           >
-            <span>Solicitar Cotización</span>
-            <ArrowRight style={{ width: 15, height: 15 }} />
-          </button>
-        </div>
+            <div>
+              <span style={{ fontSize: 10, fontWeight: 800, color: "#f37021", textTransform: "uppercase", letterSpacing: "0.12em", display: "block", marginBottom: 4 }}>
+                ¿Necesita una solución personalizada?
+              </span>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#ffffff", margin: 0 }}>
+                ¿Tiene una consulta técnica o requiere diagnóstico?
+              </h3>
+              <p style={{ fontSize: 12.5, color: "rgba(203,213,225,0.75)", margin: "4px 0 0" }}>
+                Llámenos directamente al PBX 321 445 1817 o envíenos sus requerimientos.
+              </p>
+            </div>
+
+            <button
+              onClick={() => onOpenQuote && onOpenQuote("Consulta desde FAQ")}
+              style={{
+                padding: "13px 28px",
+                borderRadius: 12,
+                border: "none",
+                background: "linear-gradient(135deg, #f37021 0%, #d95d13 100%)",
+                color: "#ffffff",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                boxShadow: "0 8px 24px rgba(243,112,33,0.35)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                transition: "all 0.25s ease"
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
+              onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+            >
+              <span>Solicitar Cotización</span>
+              <ArrowRight style={{ width: 15, height: 15 }} />
+            </button>
+          </div>
+        )}
+
+        {/* CTA para ver página completa en modo compacto */}
+        {compact && onViewFull && (
+          <div style={{ textAlign: "center", marginTop: 40 }}>
+            <button
+              onClick={onViewFull}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "14px 32px",
+                borderRadius: 12,
+                border: "none",
+                background: "linear-gradient(135deg, #20c997 0%, #0d9488 100%)",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                boxShadow: "0 8px 24px rgba(32,201,151,0.35)",
+                transition: "all 0.25s ease"
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px) scale(1.03)")}
+              onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0) scale(1)")}
+            >
+              <span>Ver Todas las Preguntas Frecuentes</span>
+              <ArrowRight style={{ width: 15, height: 15 }} />
+            </button>
+          </div>
+        )}
 
       </div>
     </section>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Cpu, Phone, Mail, MessageCircle, Menu, X, ArrowRight, User } from 'lucide-react';
 import SLPLogo from './SLPLogo';
 
-export default function Navbar({ onOpenQuote, onOpenBlog }) {
+export default function Navbar({ onOpenQuote, onOpenBlog, onOpenAbout, onOpenServices, onGoHome, onOpenPortfolio, onOpenProcess, onOpenWhyChooseUs, onOpenFAQ, onOpenContact }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('inicio');
@@ -32,15 +32,28 @@ export default function Navbar({ onOpenQuote, onOpenBlog }) {
 
   const navLinks = [
     { id: 'inicio', label: 'Inicio' },
-    { id: 'nosotros', label: 'Nosotros' },
-    { id: 'servicios', label: 'Servicios' },
-    { id: 'porque-slp', label: '¿Por qué SLP?' },
-    { id: 'proceso', label: 'Proceso' },
-    { id: 'portafolio', label: 'Portafolio' },
-    { id: 'faq', label: 'FAQ' },
-    { id: 'blog', label: 'Blog' },
-    { id: 'contacto', label: 'Contacto' },
+    { id: 'nosotros', label: 'Nosotros', handler: onOpenAbout },
+    { id: 'servicios', label: 'Servicios', handler: onOpenServices },
+    { id: 'porque-slp', label: '¿Por qué SLP?', handler: onOpenWhyChooseUs },
+    { id: 'proceso', label: 'Proceso', handler: onOpenProcess },
+    { id: 'portafolio', label: 'Portafolio', handler: onOpenPortfolio },
+    { id: 'faq', label: 'FAQ', handler: onOpenFAQ },
+    { id: 'blog', label: 'Blog', handler: onOpenBlog },
+    { id: 'contacto', label: 'Contacto', handler: onOpenContact },
   ];
+
+  const handleLinkClick = (link) => {
+    setMobileMenuOpen(false);
+    if (link.handler) {
+      link.handler();
+    } else {
+      if (onGoHome) onGoHome();
+      setTimeout(() => {
+        const el = document.getElementById(link.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-200">
@@ -77,45 +90,29 @@ export default function Navbar({ onOpenQuote, onOpenBlog }) {
           <div className="flex items-center justify-between">
             
             {/* HostSLP Official Brand Logo */}
-            <a href="#inicio" className="flex items-center group">
+            <button onClick={() => { if (onGoHome) onGoHome(); else window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center group bg-transparent border-0 cursor-pointer">
               <SLPLogo size="medium" />
-            </a>
+            </button>
 
             {/* Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center gap-6">
               {navLinks.map((link) => (
-                link.id === 'blog' && onOpenBlog ? (
-                  <button
-                    key={link.id}
-                    onClick={onOpenBlog}
-                    className={`text-xs font-bold transition-colors relative py-1 bg-transparent border-0 cursor-pointer ${
-                      activeSection === link.id
-                        ? 'text-hostdime-orange border-b-2 border-hostdime-orange'
-                        : 'text-slate-700 hover:text-hostdime-navy'
-                    }`}
-                  >
-                    {link.label}
-                  </button>
-                ) : (
-                  <a
-                    key={link.id}
-                    href={`#${link.id}`}
-                    className={`text-xs font-bold transition-colors relative py-1 ${
-                      activeSection === link.id
-                        ? 'text-hostdime-orange border-b-2 border-hostdime-orange'
-                        : 'text-slate-700 hover:text-hostdime-navy'
-                    }`}
-                  >
-                    {link.label}
-                  </a>
-                )
+                <button
+                  key={link.id}
+                  onClick={() => handleLinkClick(link)}
+                  className={`text-xs font-bold transition-colors relative py-1 bg-transparent border-0 cursor-pointer ${
+                    activeSection === link.id
+                      ? 'text-hostdime-orange border-b-2 border-hostdime-orange'
+                      : 'text-slate-700 hover:text-hostdime-navy'
+                  }`}
+                >
+                  {link.label}
+                </button>
               ))}
             </nav>
 
-            {/* Right Quick Actions (HostDime Style) */}
+            {/* Right Quick Actions */}
             <div className="hidden md:flex items-center gap-3">
-              
-              {/* Primary Contact Orange Button */}
               <button
                 onClick={onOpenQuote}
                 className="btn-hostdime-orange px-5 py-2.5 text-xs uppercase tracking-wider flex items-center gap-2"
@@ -123,7 +120,6 @@ export default function Navbar({ onOpenQuote, onOpenBlog }) {
                 <span>Contáctanos</span>
               </button>
 
-              {/* Quick Icons */}
               <a
                 href="https://wa.me/573214451817"
                 target="_blank"
@@ -141,7 +137,6 @@ export default function Navbar({ onOpenQuote, onOpenBlog }) {
               >
                 <Phone className="w-4 h-4" />
               </a>
-
             </div>
 
             {/* Mobile Menu Trigger */}
@@ -169,28 +164,15 @@ export default function Navbar({ onOpenQuote, onOpenBlog }) {
         <div className="lg:hidden bg-white border-b border-slate-200 p-6 shadow-xl animate-in slide-in-from-top duration-200">
           <div className="flex flex-col gap-3">
             {navLinks.map((link) => (
-              link.id === 'blog' && onOpenBlog ? (
-                <button
-                  key={link.id}
-                  onClick={() => { setMobileMenuOpen(false); onOpenBlog(); }}
-                  className={`py-2 text-sm font-bold border-b border-slate-100 bg-transparent border-l-0 border-r-0 border-t-0 cursor-pointer text-left ${
-                    activeSection === link.id ? 'text-hostdime-orange' : 'text-slate-700'
-                  }`}
-                >
-                  {link.label}
-                </button>
-              ) : (
-                <a
-                  key={link.id}
-                  href={`#${link.id}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 text-sm font-bold border-b border-slate-100 ${
-                    activeSection === link.id ? 'text-hostdime-orange' : 'text-slate-700'
-                  }`}
-                >
-                  {link.label}
-                </a>
-              )
+              <button
+                key={link.id}
+                onClick={() => handleLinkClick(link)}
+                className={`py-2 text-sm font-bold border-b border-slate-100 bg-transparent border-l-0 border-r-0 border-t-0 cursor-pointer text-left ${
+                  activeSection === link.id ? 'text-hostdime-orange' : 'text-slate-700'
+                }`}
+              >
+                {link.label}
+              </button>
             ))}
 
             <div className="pt-4 flex flex-col gap-3">
