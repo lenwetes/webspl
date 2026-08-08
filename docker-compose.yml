@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  # Base de Datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: webspl-db
+    restart: always
+    environment:
+      POSTGRES_USER: webspl_user
+      POSTGRES_PASSWORD: webspl_pass
+      POSTGRES_DB: webspl_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webspl_user -d webspl_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Aplicación Web Backend + Frontend (Express + SPA)
   app:
     build:
       context: .
@@ -12,34 +32,13 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=4000
-      - DATABASE_URL=postgres://webspl_user:webspl_secure_pass_2026@db:5432/webspl_db
-      - JWT_SECRET=slp_jwt_secret_key_production_2026
+      - DATABASE_URL=postgres://webspl_user:webspl_pass@db:5432/webspl_db
+      - JWT_SECRET=slp_jwt_secret_key_2026_prod
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - app_uploads:/app/uploads
-
-  db:
-    image: postgres:16-alpine
-    container_name: webspl-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: webspl_db
-      POSTGRES_USER: webspl_user
-      POSTGRES_PASSWORD: webspl_secure_pass_2026
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U webspl_user -d webspl_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./uploads:/app/uploads
 
 volumes:
   postgres_data:
-    driver: local
-  app_uploads:
-    driver: local
