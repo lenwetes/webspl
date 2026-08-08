@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -18,29 +20,91 @@ if (!fs.existsSync(uploadsPath)) {
   fs.mkdirSync(uploadsPath, { recursive: true });
 }
 
+// ── Validación estricta de archivos subidos ──
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsPath),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname) || '.jpg';
+    const ext = path.extname(file.originalname).toLowerCase();
     cb(null, 'img-' + uniqueSuffix + ext);
   },
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB máximo (reducido de 10MB)
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
-    else cb(new Error('Solo se permiten archivos de imagen'));
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return cb(new Error('Extensión de archivo no permitida'));
+    }
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Solo se permiten archivos de imagen'));
+    }
+    // Bloquear SVG (puede contener JavaScript/XSS)
+    if (file.mimetype === 'image/svg+xml' || ext === '.svg') {
+      return cb(new Error('Archivos SVG no permitidos por seguridad'));
+    }
+    cb(null, true);
   },
 });
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const JWT_SECRET = process.env.JWT_SECRET || 'slp_jwt_secret_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('❌ FATAL: JWT_SECRET no definido en variables de entorno. El servidor NO arrancará en producción sin esta variable.');
+  process.exit(1);
+}
+const EFFECTIVE_JWT_SECRET = JWT_SECRET || 'dev_only_secret_' + crypto.randomBytes(16).toString('hex');
 
-app.use(cors());
-app.use(express.json());
+// ── Cabeceras de Seguridad HTTP (Helmet) ──
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      frameSrc: ["'self'", "https://www.google.com"],
+      connectSrc: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// ── CORS Restrictivo ──
+const CORS_ORIGIN = process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production'
+  ? 'https://slpsoluciones.cloud'
+  : '*');
+app.use(cors({
+  origin: CORS_ORIGIN === '*' ? true : CORS_ORIGIN.split(',').map(s => s.trim()),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.use(express.json({ limit: '1mb' }));
+
+// ── Rate Limiting ──
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 7, // máx 7 intentos por IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos de autenticación. Intente en 15 minutos.' },
+});
+
+const generalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 100, // 100 req/min por IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes. Intente más tarde.' },
+});
+
+app.use('/api/', generalLimiter);
 
 // Middleware de Autenticación JWT
 function authenticateToken(req, res, next) {
@@ -48,7 +112,7 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Acceso no autorizado' });
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
+  jwt.verify(token, EFFECTIVE_JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ error: 'Token inválido o expirado' });
     req.user = user;
     next();
@@ -57,11 +121,14 @@ function authenticateToken(req, res, next) {
 
 /* ════════ API ENDPOINTS ════════ */
 
-// Login Admin
-app.post('/api/auth/login', async (req, res) => {
+// Login Admin (protegido por rate limiter)
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
   try {
     const cleanEmail = (email || '').trim();
+    if (!cleanEmail || !password) {
+      return res.status(400).json({ error: 'Credenciales inválidas' });
+    }
     const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Credenciales inválidas' });
@@ -75,8 +142,8 @@ app.post('/api/auth/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '24h' }
+      EFFECTIVE_JWT_SECRET,
+      { expiresIn: '2h' }
     );
 
     res.json({
@@ -84,24 +151,25 @@ app.post('/api/auth/login', async (req, res) => {
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
-    res.status(500).json({ error: 'Error en el servidor al iniciar sesión' });
+    console.error('Login error:', err.message);
+    res.status(500).json({ error: 'Error en el servidor' });
   }
 });
 
-// Solicitar recuperación de contraseña
-app.post('/api/auth/forgot-password', async (req, res) => {
+// Solicitar recuperación de contraseña (protegido por rate limiter)
+app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
   const { email } = req.body;
   try {
     const cleanEmail = (email || '').trim();
+    // Siempre responder con éxito para evitar enumeración de usuarios
     const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
     if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'El correo electrónico no se encuentra registrado en el sistema.' });
+      return res.json({ ok: true });
     }
     const user = result.rows[0];
     const token = crypto.randomBytes(48).toString('hex');
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-    // Invalidar tokens previos del mismo usuario
     await pool.query(
       'UPDATE password_reset_tokens SET used = true WHERE user_id = $1 AND used = false',
       [user.id]
@@ -111,14 +179,15 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       [user.id, token, expiresAt]
     );
 
-    const baseUrl = process.env.APP_URL || 'http://slpsoluciones.cloud';
+    const baseUrl = process.env.APP_URL || 'https://slpsoluciones.cloud';
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
     await sendPasswordResetEmail(user.email, user.name, resetUrl);
     res.json({ ok: true });
   } catch (err) {
-    console.error('forgot-password error:', err);
-    res.status(500).json({ error: err.message || 'Error al procesar la solicitud' });
+    console.error('forgot-password error:', err.message);
+    // No revelar detalles del error
+    res.json({ ok: true });
   }
 });
 
@@ -135,12 +204,12 @@ app.get('/api/auth/reset-password/:token', async (req, res) => {
     }
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: 'Error al validar el token' });
+    res.status(500).json({ error: 'Error al validar el enlace' });
   }
 });
 
 // Restablecer contraseña con token
-app.post('/api/auth/reset-password', async (req, res) => {
+app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password || password.length < 8) {
     return res.status(400).json({ error: 'Token y contraseña (mín. 8 caracteres) requeridos' });
@@ -154,44 +223,17 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(400).json({ error: 'Enlace inválido o expirado' });
     }
     const { user_id, id: tokenId } = result.rows[0];
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, 12);
     await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashed, user_id]);
     await pool.query('UPDATE password_reset_tokens SET used = true WHERE id = $1', [tokenId]);
     res.json({ ok: true });
   } catch (err) {
-    console.error('reset-password error:', err);
+    console.error('reset-password error:', err.message);
     res.status(500).json({ error: 'Error al restablecer contraseña' });
   }
 });
 
-// Obtener posts públicos
-app.get('/api/posts', async (req, res) => {
-  const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
-  try {
-    let queryStr = 'SELECT * FROM posts WHERE published = true ORDER BY id DESC';
-    const params = [];
-    if (limit) {
-      queryStr += ' LIMIT $1';
-      params.push(limit);
-    }
-    const result = await pool.query(queryStr, params);
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al consultar publicaciones' });
-  }
-});
-
-// Obtener post por slug
-app.get('/api/posts/:slug', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM posts WHERE slug = $1 AND published = true', [req.params.slug]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Publicación no encontrada' });
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al consultar publicación' });
-  }
-});
-
+// ── IMPORTANTE: Ruta admin /api/posts/all ANTES de /api/posts/:slug ──
 // Admin: Obtener todos los posts
 app.get('/api/posts/all', authenticateToken, async (req, res) => {
   try {
@@ -202,7 +244,35 @@ app.get('/api/posts/all', authenticateToken, async (req, res) => {
   }
 });
 
-// Admin: Crear o Editar post
+// Obtener posts públicos
+app.get('/api/posts', async (req, res) => {
+  const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
+  try {
+    let queryStr = 'SELECT * FROM posts WHERE published = true ORDER BY id DESC';
+    const params = [];
+    if (limit && Number.isFinite(limit) && limit > 0) {
+      queryStr += ' LIMIT $1';
+      params.push(limit);
+    }
+    const result = await pool.query(queryStr, params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al consultar publicaciones' });
+  }
+});
+
+// Obtener post por slug (DESPUÉS de /api/posts/all)
+app.get('/api/posts/:slug', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM posts WHERE slug = $1 AND published = true', [req.params.slug]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Publicación no encontrada' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al consultar publicación' });
+  }
+});
+
+// Admin: Crear post
 app.post('/api/posts', authenticateToken, async (req, res) => {
   const p = req.body;
   try {
@@ -293,8 +363,11 @@ app.get('/api/auth/users', authenticateToken, async (req, res) => {
 
 app.post('/api/auth/users', authenticateToken, async (req, res) => {
   const { name, email, password, role } = req.body;
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+  }
   try {
-    const hashedPass = await bcrypt.hash(password, 10);
+    const hashedPass = await bcrypt.hash(password, 12);
     const result = await pool.query(
       'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
       [name, email, hashedPass, role || 'admin']
@@ -314,14 +387,14 @@ app.delete('/api/auth/users/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Admin: Editar usuario (nombre, email, rol, contraseña opcional)
+// Admin: Editar usuario
 app.put('/api/auth/users/:id', authenticateToken, async (req, res) => {
   const { name, email, role, password } = req.body;
   const userId = req.params.id;
 
   try {
-    if (password && password.trim().length >= 6) {
-      const hashedPass = await bcrypt.hash(password, 10);
+    if (password && password.trim().length >= 8) {
+      const hashedPass = await bcrypt.hash(password, 12);
       const result = await pool.query(
         'UPDATE users SET name = $1, email = $2, role = $3, password = $4 WHERE id = $5 RETURNING id, name, email, role',
         [name, email, role || 'admin', hashedPass, userId]
@@ -335,8 +408,8 @@ app.put('/api/auth/users/:id', authenticateToken, async (req, res) => {
       return res.json(result.rows[0]);
     }
   } catch (err) {
-    console.error('Error al actualizar usuario:', err);
-    res.status(400).json({ error: 'Error al actualizar usuario. El correo electrónico puede estar en uso.' });
+    console.error('Error al actualizar usuario:', err.message);
+    res.status(400).json({ error: 'Error al actualizar usuario' });
   }
 });
 
@@ -363,7 +436,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
       if (newPassword.length < 8) {
         return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres.' });
       }
-      const hashedNew = await bcrypt.hash(newPassword, 10);
+      const hashedNew = await bcrypt.hash(newPassword, 12);
       const updated = await pool.query(
         'UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4 RETURNING id, name, email, role',
         [name || user.name, email || user.email, hashedNew, userId]
@@ -377,7 +450,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
       return res.json(updated.rows[0]);
     }
   } catch (err) {
-    console.error('Error al actualizar perfil:', err);
+    console.error('Error al actualizar perfil:', err.message);
     res.status(400).json({ error: 'Error al actualizar el perfil' });
   }
 });
@@ -395,15 +468,18 @@ app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) =>
 const distPath = path.join(__dirname, '../dist');
 const publicPath = path.join(__dirname, '../public');
 
-// Servir directorio de imágenes subidas por el CMS
 app.use('/uploads', express.static(uploadsPath, { maxAge: '30d' }));
-// Servir archivos de dist/ (build de producción)
 app.use(express.static(distPath, { maxAge: '7d' }));
-// Fallback: servir public/ directamente (imágenes, assets estáticos)
 app.use(express.static(publicPath, { maxAge: '7d' }));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
+});
+
+/* ════════ MANEJO GLOBAL DE ERRORES ════════ */
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.message);
+  res.status(500).json({ error: 'Error interno del servidor' });
 });
 
 /* ════════ INICIALIZACIÓN ════════ */
@@ -411,6 +487,7 @@ async function startServer() {
   await initDb();
   app.listen(PORT, () => {
     console.log(`🚀 Servidor backend ejecutándose en puerto ${PORT}`);
+    console.log(`🔒 Helmet: activo | Rate Limit: activo | CORS: ${CORS_ORIGIN}`);
   });
 }
 
