@@ -1,0 +1,8 @@
+# Robots.txt — SLP Soluciones Informáticas
+User-agent: *
+Allow: /
+Allow: /uploads/
+Disallow: /api/auth/
+Disallow: /reset-password
+
+Sitemap: https://slpsoluciones.cloud/sitemap.xml

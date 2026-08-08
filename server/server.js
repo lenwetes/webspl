@@ -464,6 +464,31 @@ app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) =>
   res.json({ url: imageUrl });
 });
 
+// Endpoint dinámico para Sitemap XML de Motores de Búsqueda
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const baseUrl = process.env.APP_URL || 'https://slpsoluciones.cloud';
+    const postsResult = await pool.query('SELECT slug, created_at FROM posts WHERE published = true ORDER BY id DESC');
+    
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    
+    const pages = ['', '/services', '/portfolio', '/blog', '/about', '/process', '/whychooseus', '/faq', '/contact'];
+    pages.forEach(p => {
+      xml += `  <url><loc>${baseUrl}${p}</loc><changefreq>weekly</changefreq><priority>${p === '' ? '1.0' : '0.8'}</priority></url>\n`;
+    });
+
+    postsResult.rows.forEach(post => {
+      xml += `  <url><loc>${baseUrl}/blog/${post.slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n`;
+    });
+
+    xml += `</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
 /* ════════ SERVIR FRONTEND & ARCHIVOS SUBIDOS ════════ */
 const distPath = path.join(__dirname, '../dist');
 const publicPath = path.join(__dirname, '../public');
