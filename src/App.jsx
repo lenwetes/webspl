@@ -19,6 +19,7 @@ import Blog from './components/Blog';
 import BlogPage from './components/BlogPage';
 import Contact from './components/Contact';
 import ContactPage from './components/ContactPage';
+import RestoSLPPage from './components/RestoSLPPage';
 import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
 import AdminLogin from './components/admin/AdminLogin';
@@ -61,6 +62,7 @@ export default function App() {
   const goToFAQ = () => { setPage('faq'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const goToBlog = () => { setPage('blog'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const goToContact = () => { setPage('contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const goToRestoSLP = () => { setPage('restoslp'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   const handleLoginSuccess = (token, user) => {
     setAdminToken(token);
@@ -87,6 +89,7 @@ export default function App() {
     onOpenFAQ: goToFAQ,
     onOpenBlog: goToBlog,
     onOpenContact: goToContact,
+    onOpenRestoSLP: goToRestoSLP,
   };
 
   /* ── Router simple ── */
@@ -205,6 +208,17 @@ export default function App() {
     );
   }
 
+  // 9. Página independiente "RestoSLP"
+  if (page === 'restoslp') {
+    return (
+      <>
+        <RestoSLPPage {...navProps} />
+        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
+        <WhatsAppFAB />
+      </>
+    );
+  }
+
   /* 9. Homepage (Landing pública con versiones resumidas) */
   return (
     <div className="min-h-screen flex flex-col font-body selection:bg-hostdime-orange selection:text-white bg-hostdime-lightBg text-slate-800">
@@ -228,7 +242,7 @@ export default function App() {
         <Services onOpenServices={goToServices} onOpenQuote={(service) => handleOpenQuote(service)} />
         <WhyChooseUs compact={true} onViewFull={goToWhyChooseUs} onOpenQuote={() => handleOpenQuote()} />
         <Process compact={true} onViewFull={goToProcess} onOpenQuote={() => handleOpenQuote()} />
-        <Portfolio compact={true} onViewFull={goToPortfolio} onOpenQuote={(service) => handleOpenQuote(service)} />
+        <Portfolio compact={true} onViewFull={goToPortfolio} onOpenQuote={(service) => handleOpenQuote(service)} onOpenRestoSLP={goToRestoSLP} />
         <FAQ compact={true} onViewFull={goToFAQ} onOpenQuote={() => handleOpenQuote()} />
         <Blog onOpenQuote={handleOpenQuote} onViewAll={goToBlog} />
         <Contact compact={true} onViewFull={goToContact} onOpenQuote={() => handleOpenQuote()} />

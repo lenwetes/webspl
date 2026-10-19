@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, CheckCircle2, FolderGit2, ArrowRight } from 'lucide-react';
 
-export default function Portfolio({ onOpenQuote, compact = false, onViewFull }) {
+export default function Portfolio({ onOpenQuote, compact = false, onViewFull, onOpenRestoSLP }) {
   const [filter, setFilter] = useState('todos');
 
   const projects = [
@@ -17,13 +17,14 @@ export default function Portfolio({ onOpenQuote, compact = false, onViewFull }) 
     },
     {
       id: 2,
-      category: 'ia',
-      title: 'Asistente IA para Reservas & Atención 24/7',
-      client: 'Red de Servicios de Salud',
-      desc: 'Implementación de agente conversacional inteligente integrado con WhatsApp y API web para programación automática de citas y consultas.',
-      metrics: 'Reducción del 70% en tiempo de respuesta.',
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
-      tags: ['OpenAI API', 'Chatbot', 'WhatsApp Cloud API']
+      category: 'software',
+      slug: 'restoslp',
+      title: 'RestoSLP',
+      client: 'Sector Gastronómico & Gastro-Bars',
+      desc: 'Sistema integral de gestión para restaurantes y gastro-bars. Del pedido en mesa al cuadre contable: comandas móviles, KDS en cocina, arqueo ciego y control de food cost en tiempo real.',
+      metrics: 'Cero fugas de dinero y sincronización total del negocio en tiempo real.',
+      image: '/restoslp/banner_ecosistema.jpg',
+      tags: ['RestoSLP Core', 'KDS Cocina', 'Food Cost', 'Arqueo Ciego', 'Menú QR']
     },
     {
       id: 3,
@@ -134,13 +135,31 @@ export default function Portfolio({ onOpenQuote, compact = false, onViewFull }) 
                 </div>
               </div>
 
-              <div className="p-7 pt-0">
-                <button
-                  onClick={() => onOpenQuote(project.title)}
-                  className="w-full btn-hostdime-orange py-3 text-xs uppercase"
-                >
-                  Solicitar Proyecto Similar
-                </button>
+              <div className="p-7 pt-0 flex flex-col sm:flex-row gap-2">
+                {project.slug === 'restoslp' && onOpenRestoSLP ? (
+                  <>
+                    <button
+                      onClick={onOpenRestoSLP}
+                      className="flex-1 btn-hostdime-navy py-3 text-xs uppercase flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <span>Ver Proyecto RestoSLP</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => onOpenQuote('RestoSLP Demo')}
+                      className="flex-1 btn-hostdime-orange py-3 text-xs uppercase"
+                    >
+                      Solicitar Demo
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => onOpenQuote(project.title)}
+                    className="w-full btn-hostdime-orange py-3 text-xs uppercase"
+                  >
+                    Solicitar Proyecto Similar
+                  </button>
+                )}
               </div>
             </div>
           ))}

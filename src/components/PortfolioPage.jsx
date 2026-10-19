@@ -3,7 +3,7 @@ import PageHeader from './PageHeader';
 import Footer from './Footer';
 import Portfolio from './Portfolio';
 
-export default function PortfolioPage({ onBack, onOpenQuote, onOpenAbout, onOpenServices, onOpenBlog, onOpenPortfolio, onOpenProcess, onOpenWhyChooseUs, onOpenFAQ, onOpenContact }) {
+export default function PortfolioPage({ onBack, onOpenQuote, onOpenAbout, onOpenServices, onOpenBlog, onOpenPortfolio, onOpenProcess, onOpenWhyChooseUs, onOpenFAQ, onOpenContact, onOpenRestoSLP }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-body">
       <PageHeader
@@ -24,7 +24,7 @@ export default function PortfolioPage({ onBack, onOpenQuote, onOpenAbout, onOpen
         onOpenContact={onOpenContact}
       />
       <main className="flex-grow">
-        <Portfolio onOpenQuote={onOpenQuote} />
+        <Portfolio onOpenQuote={onOpenQuote} onOpenRestoSLP={onOpenRestoSLP} />
       </main>
       <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} />
     </div>
