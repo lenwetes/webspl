@@ -4,8 +4,8 @@ import { loginAdmin } from '../../services/api';
 import SLPLogo from '../SLPLogo';
 
 export default function AdminLogin({ onLoginSuccess, onCancel, onForgotPassword }) {
-  const [email, setEmail] = useState('postgres@slp.com');
-  const [password, setPassword] = useState('admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,8 +16,8 @@ export default function AdminLogin({ onLoginSuccess, onCancel, onForgotPassword 
 
     try {
       const data = await loginAdmin(email, password);
-      localStorage.setItem('slp_admin_token', data.token);
-      localStorage.setItem('slp_admin_user', JSON.stringify(data.admin));
+      sessionStorage.setItem('slp_admin_token', data.token);
+      sessionStorage.setItem('slp_admin_user', JSON.stringify(data.admin));
       onLoginSuccess(data.token, data.admin);
     } catch (err) {
       setError(err.message || 'Credenciales inválidas');
@@ -67,9 +67,10 @@ export default function AdminLogin({ onLoginSuccess, onCancel, onForgotPassword 
               <input
                 type="email"
                 required
+                autoComplete="username"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="admin@slp.com"
+                placeholder="admin@slpsoluciones.com"
                 style={{
                   width: '100%', padding: '12px 14px 12px 42px', borderRadius: 12, border: '1.5px solid #cbd5e1',
                   fontSize: 13, color: '#0f1e33', outline: 'none', boxSizing: 'border-box'
@@ -87,6 +88,7 @@ export default function AdminLogin({ onLoginSuccess, onCancel, onForgotPassword 
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"

@@ -44,9 +44,15 @@ export default function App() {
     return 'home'; // 'home' | 'about' | 'services' | 'blog' | 'portfolio' | 'process' | 'why-choose-us' | 'faq' | 'contact' | 'admin' | ...
   });
 
-  const [adminToken, setAdminToken] = useState(localStorage.getItem('slp_admin_token') || '');
+  const [adminToken, setAdminToken] = useState(() => {
+    try {
+      localStorage.removeItem('slp_admin_token');
+      localStorage.removeItem('slp_admin_user');
+    } catch {}
+    return sessionStorage.getItem('slp_admin_token') || '';
+  });
   const [adminUser, setAdminUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('slp_admin_user') || 'null'); }
+    try { return JSON.parse(sessionStorage.getItem('slp_admin_user') || 'null'); }
     catch { return null; }
   });
 
@@ -73,8 +79,12 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('slp_admin_token');
-    localStorage.removeItem('slp_admin_user');
+    try {
+      sessionStorage.removeItem('slp_admin_token');
+      sessionStorage.removeItem('slp_admin_user');
+      localStorage.removeItem('slp_admin_token');
+      localStorage.removeItem('slp_admin_user');
+    } catch {}
     setAdminToken('');
     setAdminUser(null);
     setPage('home');

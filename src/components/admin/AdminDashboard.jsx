@@ -150,7 +150,7 @@ export default function AdminDashboard({ token, admin, onLogout, onGoToSite }) {
     try {
       const updatedUser = await updateProfileAdmin(token, profileData);
       setProfileSuccessMsg('¡Perfil y contraseña actualizados correctamente!');
-      localStorage.setItem('slp_admin_user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('slp_admin_user', JSON.stringify(updatedUser));
       setTimeout(() => {
         setShowProfileModal(false);
       }, 1500);
