@@ -53,13 +53,34 @@ export async function loginAdmin(email, password) {
   return await handleResponse(res, 'Error al iniciar sesión');
 }
 
+const FORM_TO = 'slps.soluciones.informaticas@gmail.com';
+const FORM_CC = 'selpe74@gmail.com,lenwetes@gmail.com';
+const FORM_LABELS = {
+  nombre: 'Nombre', empresa: 'Empresa', telefono: 'Teléfono', correo: 'Correo',
+  servicio: 'Servicio', alcance: 'Alcance', urgencia: 'Urgencia', presupuesto: 'Presupuesto', mensaje: 'Mensaje',
+};
+
 export async function sendContact(data) {
-  const res = await fetch(`${API_BASE}/contact`, {
+  const fields = Object.fromEntries(
+    Object.entries(FORM_LABELS).filter(([k]) => data[k]).map(([k, label]) => [label, data[k]])
+  );
+  const res = await fetch(`https://formsubmit.co/ajax/${FORM_TO}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      ...fields,
+      _subject: `[${data.origen}] ${data.servicio || 'Consulta'} — ${data.nombre}`,
+      _cc: FORM_CC,
+      _replyto: data.correo,
+      _template: 'table',
+      _captcha: 'false',
+    }),
   });
-  return await handleResponse(res, 'No se pudo enviar el mensaje');
+  const json = await handleResponse(res, 'No se pudo enviar el mensaje');
+  if (String(json.success) !== 'true') {
+    throw new Error('No se pudo enviar el mensaje. Contáctenos por WhatsApp al 321 445 1817.');
+  }
+  return json;
 }
 
 export async function fetchAllPostsAdmin(token) {

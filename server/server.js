@@ -10,7 +10,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import { pool, initDb } from './db.js';
-import { sendPasswordResetEmail, sendContactEmail } from './email.js';
+import { sendPasswordResetEmail } from './email.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,7 +68,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       frameSrc: ["'self'", "https://www.google.com"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://formsubmit.co"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -106,14 +106,6 @@ const generalLimiter = rateLimit({
 
 app.use('/api/', generalLimiter);
 
-const contactLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Demasiados envíos. Intente en 15 minutos o contáctenos por WhatsApp.' },
-});
-
 // Middleware de Autenticación JWT
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -128,36 +120,6 @@ function authenticateToken(req, res, next) {
 }
 
 /* ════════ API ENDPOINTS ════════ */
-
-// Formularios públicos (contacto / cotización) → correo corporativo
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const line = (v, max = 160) => String(v ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, max);
-
-app.post('/api/contact', contactLimiter, async (req, res) => {
-  const b = req.body || {};
-  const data = {
-    origen: line(b.origen, 40) || 'Web',
-    nombre: line(b.nombre, 120),
-    empresa: line(b.empresa),
-    telefono: line(b.telefono, 40),
-    correo: line(b.correo),
-    servicio: line(b.servicio),
-    alcance: line(b.alcance),
-    urgencia: line(b.urgencia),
-    presupuesto: line(b.presupuesto),
-    mensaje: String(b.mensaje ?? '').trim().slice(0, 5000),
-  };
-  if (!data.nombre || !data.telefono || !EMAIL_RE.test(data.correo)) {
-    return res.status(400).json({ error: 'Nombre, teléfono y correo válido son obligatorios' });
-  }
-  try {
-    await sendContactEmail(data);
-    res.json({ ok: true });
-  } catch (err) {
-    console.error('contact error:', err.message);
-    res.status(502).json({ error: 'No se pudo enviar el mensaje. Contáctenos por WhatsApp al 321 445 1817.' });
-  }
-});
 
 // Login Admin (protegido por rate limiter)
 app.post('/api/auth/login', authLimiter, async (req, res) => {
