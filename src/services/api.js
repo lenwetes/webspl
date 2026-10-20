@@ -56,7 +56,7 @@ export async function loginAdmin(email, password) {
 import emailjs from '@emailjs/browser';
 
 const EMAILJS_SERVICE_ID = 'service_903xb8u';
-const EMAILJS_TEMPLATE_ID = 'template_rtl3p1d';
+const EMAILJS_TEMPLATE_ID = 'template_8z9jwzl';
 const EMAILJS_PUBLIC_KEY = 'Xr5_oJICjSgT1PGam';
 
 export async function sendContact(data) {
