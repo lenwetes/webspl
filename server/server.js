@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -509,7 +510,11 @@ app.use((err, req, res, next) => {
 
 /* ════════ INICIALIZACIÓN ════════ */
 async function startServer() {
-  await initDb();
+  try {
+    await initDb();
+  } catch (err) {
+    console.error('⚠️ [BD] Error al inicializar base de datos:', err.message);
+  }
   app.listen(PORT, () => {
     console.log(`🚀 Servidor backend ejecutándose en puerto ${PORT}`);
     console.log(`🔒 Helmet: activo | Rate Limit: activo | CORS: ${CORS_ORIGIN}`);

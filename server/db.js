@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
 
@@ -230,8 +231,9 @@ const DEFAULT_ARTICLES = [
 ];
 
 export async function initDb() {
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     // 1. Tabla de Usuarios Admin
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -333,8 +335,8 @@ export async function initDb() {
 
     console.log('✅ Base de datos inicializada y sincronizada con contenido enriquecido.');
   } catch (err) {
-    console.error('❌ Error al inicializar PostgreSQL:', err);
+    console.error('❌ Error al inicializar PostgreSQL:', err.message);
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
