@@ -14,7 +14,7 @@ const SERVICES_QUICK = [
   { icon: Briefcase, label: 'Consultoría TI', color: '#0ea5e9', desc: 'Auditorías, diseño de arquitectura y planes de continuidad.' },
 ];
 
-export default function ContactPage({ onBack, onOpenQuote, onOpenAbout, onOpenServices, onOpenBlog, onOpenPortfolio, onOpenProcess, onOpenWhyChooseUs, onOpenFAQ, onOpenContact }) {
+export default function ContactPage({ onBack, onOpenQuote, onOpenAbout, onOpenServices, onOpenBlog, onOpenPortfolio, onOpenProcess, onOpenWhyChooseUs, onOpenFAQ, onOpenContact, onOpenLegal }) {
   const [formData, setFormData] = useState({
     nombre: '', empresa: '', telefono: '', correo: '', servicio: 'Desarrollo de Software', mensaje: ''
   });
@@ -22,9 +22,14 @@ export default function ContactPage({ onBack, onOpenQuote, onOpenAbout, onOpenSe
   const [hoveredService, setHoveredService] = useState(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!acceptTerms) {
+      setError('Debe autorizar el tratamiento de sus datos personales para enviar el mensaje.');
+      return;
+    }
     setSending(true);
     setError('');
     try {
@@ -281,6 +286,28 @@ export default function ContactPage({ onBack, onOpenQuote, onOpenAbout, onOpenSe
                         <textarea className="cp-input" required rows={4} placeholder="Describa su proyecto, necesidad o consulta técnica..." value={formData.mensaje} onChange={(e) => setFormData({...formData, mensaje: e.target.value})} style={{ ...inputStyle, resize: 'vertical' }} />
                       </div>
 
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20 }}>
+                        <input
+                          type="checkbox"
+                          id="consent-contact-page"
+                          required
+                          checked={acceptTerms}
+                          onChange={(e) => setAcceptTerms(e.target.checked)}
+                          style={{ marginTop: 2, cursor: 'pointer', width: 16, height: 16, accentColor: '#f37021' }}
+                        />
+                        <label htmlFor="consent-contact-page" style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, cursor: 'pointer' }}>
+                          He leído y autorizo el tratamiento de mis datos personales de acuerdo con la{' '}
+                          <button
+                            type="button"
+                            onClick={() => onOpenLegal && onOpenLegal('privacy')}
+                            style={{ color: '#f37021', fontWeight: 800, textDecoration: 'underline', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12 }}
+                          >
+                            Política de Privacidad y Habeas Data
+                          </button>
+                          {' '}(Ley 1581 de 2012).
+                        </label>
+                      </div>
+
                       {error && <p role="alert" style={{ fontSize: 13, fontWeight: 700, color: '#e11d48', marginBottom: 14 }}>{error}</p>}
                       <button type="submit" disabled={sending}
                         style={{ width: '100%', padding: '16px 24px', borderRadius: 16, background: 'linear-gradient(135deg, #f37021 0%, #e85d04 100%)', color: '#fff', fontSize: 14, fontWeight: 900, border: 'none', cursor: sending ? 'wait' : 'pointer', opacity: sending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 8px 28px rgba(243,112,33,0.35)', transition: 'all 0.25s ease' }}
@@ -322,7 +349,7 @@ export default function ContactPage({ onBack, onOpenQuote, onOpenAbout, onOpenSe
         </section>
       </main>
 
-      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} />
+      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} onOpenLegal={onOpenLegal} />
     </div>
   );
 }

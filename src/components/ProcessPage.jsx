@@ -3,7 +3,7 @@ import PageHeader from './PageHeader';
 import Footer from './Footer';
 import Process from './Process';
 
-export default function ProcessPage({ onBack, onOpenQuote, onOpenAbout, onOpenServices, onOpenBlog, onOpenPortfolio, onOpenProcess, onOpenWhyChooseUs, onOpenFAQ, onOpenContact }) {
+export default function ProcessPage({ onBack, onOpenQuote, onOpenAbout, onOpenServices, onOpenBlog, onOpenPortfolio, onOpenProcess, onOpenWhyChooseUs, onOpenFAQ, onOpenContact, onOpenLegal }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-body">
       <PageHeader
@@ -26,7 +26,7 @@ export default function ProcessPage({ onBack, onOpenQuote, onOpenAbout, onOpenSe
       <main className="flex-grow">
         <Process onOpenQuote={onOpenQuote} />
       </main>
-      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} />
+      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} onOpenLegal={onOpenLegal} />
     </div>
   );
 }

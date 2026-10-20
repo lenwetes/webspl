@@ -26,6 +26,8 @@ import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import ForgotPassword from './components/admin/ForgotPassword';
 import ResetPassword from './components/admin/ResetPassword';
+import LegalModal from './components/LegalModal';
+import CookieBanner from './components/CookieBanner';
 import { MessageCircle } from 'lucide-react';
 
 export default function App() {
@@ -77,10 +79,18 @@ export default function App() {
     setAdminUser(null);
     setPage('home');
   };
+  const [isLegalOpen, setIsLegalOpen] = useState(false);
+  const [legalInitialTab, setLegalInitialTab] = useState('privacy');
+
+  const handleOpenLegal = (tab = 'privacy') => {
+    setLegalInitialTab(tab);
+    setIsLegalOpen(true);
+  };
 
   const navProps = {
     onBack: goToHome,
     onOpenQuote: handleOpenQuote,
+    onOpenLegal: handleOpenLegal,
     onOpenAbout: goToAbout,
     onOpenServices: goToServices,
     onOpenWhyChooseUs: goToWhyChooseUs,
@@ -91,6 +101,24 @@ export default function App() {
     onOpenContact: goToContact,
     onOpenRestoSLP: goToRestoSLP,
   };
+
+  const sharedModals = (
+    <>
+      <QuoteModal
+        isOpen={isQuoteOpen}
+        onClose={() => setIsQuoteOpen(false)}
+        initialService={quoteInitialService}
+        onOpenLegal={handleOpenLegal}
+      />
+      <LegalModal
+        isOpen={isLegalOpen}
+        onClose={() => setIsLegalOpen(false)}
+        initialTab={legalInitialTab}
+      />
+      <CookieBanner onOpenPolicy={handleOpenLegal} />
+      <WhatsAppFAB />
+    </>
+  );
 
   /* ── Router simple ── */
 
@@ -111,7 +139,7 @@ export default function App() {
         token={adminToken}
         admin={adminUser}
         onLogout={handleLogout}
-        onGoToSite={goToHome}
+        onGoHome={goToHome}
       />
     );
   }
@@ -125,8 +153,7 @@ export default function App() {
     return (
       <>
         <AboutPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -136,8 +163,7 @@ export default function App() {
     return (
       <>
         <ServicesPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -147,8 +173,7 @@ export default function App() {
     return (
       <>
         <WhyChooseUsPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -158,8 +183,7 @@ export default function App() {
     return (
       <>
         <ProcessPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -169,8 +193,7 @@ export default function App() {
     return (
       <>
         <PortfolioPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -180,8 +203,7 @@ export default function App() {
     return (
       <>
         <FAQPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -191,8 +213,7 @@ export default function App() {
     return (
       <>
         <BlogPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -202,8 +223,7 @@ export default function App() {
     return (
       <>
         <ContactPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -213,8 +233,7 @@ export default function App() {
     return (
       <>
         <RestoSLPPage {...navProps} />
-        <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-        <WhatsAppFAB />
+        {sharedModals}
       </>
     );
   }
@@ -245,12 +264,11 @@ export default function App() {
         <Portfolio compact={true} onViewFull={goToPortfolio} onOpenQuote={(service) => handleOpenQuote(service)} onOpenRestoSLP={goToRestoSLP} />
         <FAQ compact={true} onViewFull={goToFAQ} onOpenQuote={() => handleOpenQuote()} />
         <Blog onOpenQuote={handleOpenQuote} onViewAll={goToBlog} />
-        <Contact compact={true} onViewFull={goToContact} onOpenQuote={() => handleOpenQuote()} />
+        <Contact compact={true} onViewFull={goToContact} onOpenQuote={() => handleOpenQuote()} onOpenLegal={handleOpenLegal} />
       </main>
 
-      <Footer onOpenQuote={() => handleOpenQuote()} onOpenAdmin={() => setPage(adminToken ? 'admin' : 'admin-login')} />
-      <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} initialService={quoteInitialService} />
-      <WhatsAppFAB />
+      <Footer onOpenQuote={() => handleOpenQuote()} onOpenAdmin={() => setPage(adminToken ? 'admin' : 'admin-login')} onOpenLegal={handleOpenLegal} />
+      {sharedModals}
     </div>
   );
 }

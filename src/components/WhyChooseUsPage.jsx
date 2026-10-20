@@ -278,7 +278,8 @@ export default function WhyChooseUsPage({
   onOpenProcess,
   onOpenWhyChooseUs,
   onOpenFAQ,
-  onOpenContact
+  onOpenContact,
+  onOpenLegal
 }) {
   const [selectedBenefit, setSelectedBenefit] = useState(null);
 
@@ -491,7 +492,7 @@ export default function WhyChooseUsPage({
       )}
 
       {/* Footer */}
-      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} />
+      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} onOpenLegal={onOpenLegal} />
     </div>
   );
 }

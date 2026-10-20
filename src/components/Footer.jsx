@@ -2,7 +2,7 @@ import React from 'react';
 import { Phone, Mail, ArrowUp, ShieldCheck } from 'lucide-react';
 import SLPLogo from './SLPLogo';
 
-export default function Footer({ onOpenQuote, onOpenAdmin }) {
+export default function Footer({ onOpenQuote, onOpenAdmin, onOpenLegal }) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -72,9 +72,38 @@ export default function Footer({ onOpenQuote, onOpenAdmin }) {
 
         </div>
 
-        {/* Bottom copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© {new Date().getFullYear()} SLP Soluciones Informáticas. Todos los derechos reservados.</p>
+        {/* Bottom copyright & Legal Links */}
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+            <p>© {new Date().getFullYear()} SLP Soluciones Informáticas. Todos los derechos reservados.</p>
+            <span className="hidden sm:inline text-slate-600">·</span>
+            <div className="flex items-center gap-3 text-[11px]">
+              {onOpenLegal && (
+                <>
+                  <button
+                    onClick={() => onOpenLegal('privacy')}
+                    className="hover:text-hostdime-orange transition-colors cursor-pointer text-slate-400"
+                  >
+                    Tratamiento de Datos
+                  </button>
+                  <span className="text-slate-600">·</span>
+                  <button
+                    onClick={() => onOpenLegal('terms')}
+                    className="hover:text-hostdime-orange transition-colors cursor-pointer text-slate-400"
+                  >
+                    Términos y Condiciones
+                  </button>
+                  <span className="text-slate-600">·</span>
+                  <button
+                    onClick={() => onOpenLegal('cookies')}
+                    className="hover:text-hostdime-orange transition-colors cursor-pointer text-slate-400"
+                  >
+                    Cookies
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
 
           <div className="flex items-center gap-6">
             {onOpenAdmin && (

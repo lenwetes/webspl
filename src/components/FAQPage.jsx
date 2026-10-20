@@ -130,7 +130,8 @@ export default function FAQPage({
   onOpenProcess,
   onOpenWhyChooseUs,
   onOpenFAQ,
-  onOpenContact
+  onOpenContact,
+  onOpenLegal
 }) {
   const [openId, setOpenId] = useState(1);
   const [activeCategory, setActiveCategory] = useState("todos");
@@ -382,7 +383,7 @@ export default function FAQPage({
       </main>
 
       {/* Footer */}
-      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} />
+      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} onOpenLegal={onOpenLegal} />
     </div>
   );
 }

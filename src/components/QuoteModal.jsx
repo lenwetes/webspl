@@ -3,7 +3,7 @@ import { X, Sparkles, CheckCircle2, ArrowRight, ArrowLeft, Send, Calculator, Shi
 import confetti from 'canvas-confetti';
 import { sendContact } from '../services/api';
 
-export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
+export default function QuoteModal({ isOpen, onClose, initialService = '', onOpenLegal }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     service: initialService || 'Desarrollo de Software',
@@ -18,11 +18,16 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
   const [completed, setCompleted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   if (!isOpen) return null;
 
   const handleFinish = async (e) => {
     e.preventDefault();
+    if (!acceptTerms) {
+      setError('Debe aceptar los términos y autorizar el tratamiento de datos para continuar.');
+      return;
+    }
     setSending(true);
     setError('');
     try {
@@ -256,6 +261,36 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
                   <p>• Servicio: {formData.service}</p>
                   <p>• Alcance: {formData.scale}</p>
                   <p>• Tiempo: {formData.urgency}</p>
+                </div>
+
+                <div className="flex items-start gap-2.5 pt-1">
+                  <input
+                    type="checkbox"
+                    id="quote-consent"
+                    required
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-hostdime-orange accent-hostdime-orange cursor-pointer"
+                  />
+                  <label htmlFor="quote-consent" className="text-[11px] text-slate-500 leading-snug cursor-pointer">
+                    Acepto los{' '}
+                    <button
+                      type="button"
+                      onClick={() => onOpenLegal && onOpenLegal('terms')}
+                      className="text-hostdime-orange font-bold underline cursor-pointer"
+                    >
+                      Términos
+                    </button>
+                    {' '}y autorizo el tratamiento de mis datos personales según la{' '}
+                    <button
+                      type="button"
+                      onClick={() => onOpenLegal && onOpenLegal('privacy')}
+                      className="text-hostdime-orange font-bold underline cursor-pointer"
+                    >
+                      Política de Privacidad
+                    </button>
+                    {' '}(Ley 1581 de 2012).
+                  </label>
                 </div>
 
                 {error && <p role="alert" className="text-xs font-bold text-rose-600">{error}</p>}

@@ -421,7 +421,7 @@ export default function ServicesPage(props) {
       )}
 
       {/* Footer */}
-      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} />
+      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} onOpenLegal={props.onOpenLegal} />
     </div>
   );
 }

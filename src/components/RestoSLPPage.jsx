@@ -36,7 +36,8 @@ export default function RestoSLPPage({
   onOpenProcess,
   onOpenWhyChooseUs,
   onOpenFAQ,
-  onOpenContact
+  onOpenContact,
+  onOpenLegal
 }) {
   const [activeFeature, setActiveFeature] = useState(0);
   const [activeAudience, setActiveAudience] = useState('dueno');
@@ -733,7 +734,7 @@ export default function RestoSLPPage({
 
       </main>
 
-      <Footer onOpenQuote={() => onOpenQuote('RestoSLP')} onOpenAdmin={() => {}} />
+      <Footer onOpenQuote={() => onOpenQuote('RestoSLP')} onOpenAdmin={() => {}} onOpenLegal={onOpenLegal} />
     </div>
   );
 }

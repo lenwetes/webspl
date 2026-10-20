@@ -499,7 +499,7 @@ export default function AboutPage(props) {
       )}
 
       {/* Footer */}
-      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} />
+      <Footer onOpenQuote={() => onOpenQuote()} onOpenAdmin={() => {}} onOpenLegal={props.onOpenLegal} />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Phone, Mail, Send, CheckCircle2, Clock, ShieldCheck, ArrowRight, Messag
 import confetti from 'canvas-confetti';
 import { sendContact } from '../services/api';
 
-export default function Contact({ onOpenQuote, compact = false, onViewFull }) {
+export default function Contact({ onOpenQuote, compact = false, onViewFull, onOpenLegal }) {
   const [formData, setFormData] = useState({
     nombre: '',
     empresa: '',
@@ -15,9 +15,14 @@ export default function Contact({ onOpenQuote, compact = false, onViewFull }) {
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!acceptTerms) {
+      setError('Debe autorizar el tratamiento de datos para continuar.');
+      return;
+    }
     setSending(true);
     setError('');
     try {
@@ -182,6 +187,28 @@ export default function Contact({ onOpenQuote, compact = false, onViewFull }) {
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Detalles del Requerimiento *</label>
                   <textarea required rows={3} placeholder="Escriba aquí los detalles..." value={formData.mensaje} onChange={(e) => setFormData({...formData, mensaje: e.target.value})}
                     style={{ width: '100%', padding: '11px 14px', borderRadius: 12, background: '#f8fafc', border: '1.5px solid #e2e8f0', fontSize: 12, fontWeight: 600, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 18 }}>
+                  <input
+                    type="checkbox"
+                    id="consent-contact-home"
+                    required
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    style={{ marginTop: 2, cursor: 'pointer', width: 16, height: 16, accentColor: '#f37021' }}
+                  />
+                  <label htmlFor="consent-contact-home" style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5, cursor: 'pointer' }}>
+                    Autorizo el tratamiento de mis datos personales según la{' '}
+                    <button
+                      type="button"
+                      onClick={() => onOpenLegal && onOpenLegal('privacy')}
+                      style={{ color: '#f37021', fontWeight: 800, textDecoration: 'underline', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 11 }}
+                    >
+                      Política de Privacidad y Habeas Data
+                    </button>
+                    {' '}(Ley 1581 de 2012).
+                  </label>
                 </div>
 
                 {error && <p role="alert" style={{ fontSize: 12, fontWeight: 700, color: '#e11d48', marginBottom: 12 }}>{error}</p>}
