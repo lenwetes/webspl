@@ -53,34 +53,73 @@ export async function loginAdmin(email, password) {
   return await handleResponse(res, 'Error al iniciar sesión');
 }
 
-const FORM_TO = 'slps.soluciones.informaticas@gmail.com';
-const FORM_CC = 'selpe74@gmail.com,lenwetes@gmail.com';
-const FORM_LABELS = {
-  nombre: 'Nombre', empresa: 'Empresa', telefono: 'Teléfono', correo: 'Correo',
-  servicio: 'Servicio', alcance: 'Alcance', urgencia: 'Urgencia', presupuesto: 'Presupuesto', mensaje: 'Mensaje',
-};
+import emailjs from '@emailjs/browser';
+
+const EMAILJS_SERVICE_ID = 'service_903xb8u';
+const EMAILJS_TEMPLATE_ID = 'template_rtl3p1d';
+const EMAILJS_PUBLIC_KEY = 'Xr5_oJICjSgT1PGam';
 
 export async function sendContact(data) {
-  const fields = Object.fromEntries(
-    Object.entries(FORM_LABELS).filter(([k]) => data[k]).map(([k, label]) => [label, data[k]])
+  const messageBody = [
+    `Origen: ${data.origen || 'Web'}`,
+    `Nombre: ${data.nombre}`,
+    `Empresa: ${data.empresa || 'N/A'}`,
+    `Teléfono: ${data.telefono}`,
+    `Correo: ${data.correo}`,
+    `Servicio: ${data.servicio || 'N/A'}`,
+    data.alcance ? `Alcance: ${data.alcance}` : '',
+    data.urgencia ? `Urgencia: ${data.urgencia}` : '',
+    data.presupuesto ? `Presupuesto: ${data.presupuesto}` : '',
+    `Mensaje/Detalles: ${data.mensaje || 'N/A'}`,
+  ].filter(Boolean).join('\n');
+
+  const templateParams = {
+    name: data.nombre,
+    from_name: data.nombre,
+    nombre: data.nombre,
+
+    email: data.correo,
+    user_email: data.correo,
+    correo: data.correo,
+    reply_to: data.correo,
+
+    phone: data.telefono,
+    telefono: data.telefono,
+
+    company: data.empresa || '',
+    empresa: data.empresa || '',
+
+    service: data.servicio || '',
+    servicio: data.servicio || '',
+
+    subject: `[${data.origen}] ${data.servicio || 'Consulta'} — ${data.nombre}`,
+    origen: data.origen,
+
+    alcance: data.alcance || '',
+    urgencia: data.urgencia || '',
+    presupuesto: data.presupuesto || '',
+    detalles: data.mensaje || '',
+
+    message: messageBody,
+  };
+
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Tiempo de espera agotado. Contáctenos por WhatsApp al 321 445 1817.')), 10000)
   );
-  const res = await fetch(`https://formsubmit.co/ajax/${FORM_TO}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      ...fields,
-      _subject: `[${data.origen}] ${data.servicio || 'Consulta'} — ${data.nombre}`,
-      _cc: FORM_CC,
-      _replyto: data.correo,
-      _template: 'table',
-      _captcha: 'false',
-    }),
-  });
-  const json = await handleResponse(res, 'No se pudo enviar el mensaje');
-  if (String(json.success) !== 'true') {
-    throw new Error('No se pudo enviar el mensaje. Contáctenos por WhatsApp al 321 445 1817.');
+
+  const sendPromise = emailjs.send(
+    EMAILJS_SERVICE_ID,
+    EMAILJS_TEMPLATE_ID,
+    templateParams,
+    EMAILJS_PUBLIC_KEY
+  );
+
+  try {
+    return await Promise.race([sendPromise, timeoutPromise]);
+  } catch (err) {
+    console.error('EmailJS error:', err);
+    throw new Error(err.text || err.message || 'No se pudo enviar el mensaje. Contáctenos por WhatsApp al 321 445 1817.');
   }
-  return json;
 }
 
 export async function fetchAllPostsAdmin(token) {

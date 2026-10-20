@@ -68,7 +68,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       frameSrc: ["'self'", "https://www.google.com"],
-      connectSrc: ["'self'", "https://formsubmit.co"],
+      connectSrc: ["'self'", "https://api.emailjs.com"],
     },
   },
   crossOriginEmbedderPolicy: false,
