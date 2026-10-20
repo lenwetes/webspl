@@ -60,7 +60,7 @@ const EMAILJS_TEMPLATE_ID = 'template_8z9jwzl';
 const EMAILJS_PUBLIC_KEY = 'Xr5_oJICjSgT1PGam';
 
 export async function sendContact(data) {
-  const messageBody = [
+  const rows = [
     `Origen: ${data.origen || 'Web'}`,
     `Nombre: ${data.nombre}`,
     `Empresa: ${data.empresa || 'N/A'}`,
@@ -70,37 +70,54 @@ export async function sendContact(data) {
     data.alcance ? `Alcance: ${data.alcance}` : '',
     data.urgencia ? `Urgencia: ${data.urgencia}` : '',
     data.presupuesto ? `Presupuesto: ${data.presupuesto}` : '',
-    `Mensaje/Detalles: ${data.mensaje || 'N/A'}`,
-  ].filter(Boolean).join('\n');
+    `Mensaje / Requerimiento: ${data.mensaje || 'N/A'}`,
+  ].filter(Boolean);
+
+  const plainMessage = rows.join('\n');
+  const htmlMessage = rows.join('<br/>');
 
   const templateParams = {
-    name: data.nombre,
     from_name: data.nombre,
+    name: data.nombre,
     nombre: data.nombre,
+    user_name: data.nombre,
 
+    reply_to: data.correo,
     email: data.correo,
     user_email: data.correo,
     correo: data.correo,
-    reply_to: data.correo,
+    from_email: data.correo,
 
     phone: data.telefono,
     telefono: data.telefono,
+    tel: data.telefono,
+    celular: data.telefono,
 
-    company: data.empresa || '',
-    empresa: data.empresa || '',
+    company: data.empresa || 'N/A',
+    empresa: data.empresa || 'N/A',
 
-    service: data.servicio || '',
-    servicio: data.servicio || '',
+    service: data.servicio || 'N/A',
+    servicio: data.servicio || 'N/A',
+
+    scale: data.alcance || '',
+    alcance: data.alcance || '',
+    urgency: data.urgencia || '',
+    urgencia: data.urgencia || '',
+    budget: data.presupuesto || '',
+    presupuesto: data.presupuesto || '',
+    detalles: data.mensaje || 'N/A',
+    details: data.mensaje || 'N/A',
 
     subject: `[${data.origen}] ${data.servicio || 'Consulta'} — ${data.nombre}`,
     origen: data.origen,
 
-    alcance: data.alcance || '',
-    urgencia: data.urgencia || '',
-    presupuesto: data.presupuesto || '',
-    detalles: data.mensaje || '',
-
-    message: messageBody,
+    message: plainMessage,
+    message_html: htmlMessage,
+    mensaje: plainMessage,
+    content: plainMessage,
+    text: plainMessage,
+    notes: plainMessage,
+    body: plainMessage,
   };
 
   const timeoutPromise = new Promise((_, reject) =>
