@@ -53,6 +53,15 @@ export async function loginAdmin(email, password) {
   return await handleResponse(res, 'Error al iniciar sesión');
 }
 
+export async function sendContact(data) {
+  const res = await fetch(`${API_BASE}/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return await handleResponse(res, 'No se pudo enviar el mensaje');
+}
+
 export async function fetchAllPostsAdmin(token) {
   const res = await fetch(`${API_BASE}/posts/all`, {
     headers: { Authorization: `Bearer ${token}` },

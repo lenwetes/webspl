@@ -3,6 +3,7 @@ import PageHeader from './PageHeader';
 import Footer from './Footer';
 import { Phone, Mail, Send, CheckCircle2, Clock, ShieldCheck, MessageCircle, MapPin, Headphones, Zap, ArrowRight, Briefcase, Cpu, Network, Code2, MonitorSmartphone } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { sendContact } from '../services/api';
 
 const SERVICES_QUICK = [
   { icon: Code2, label: 'Software a Medida', color: '#8b5cf6', desc: 'Aplicaciones web y móviles diseñadas fielmente para su negocio.' },
@@ -19,11 +20,22 @@ export default function ContactPage({ onBack, onOpenQuote, onOpenAbout, onOpenSe
   });
   const [submitted, setSubmitted] = useState(false);
   const [hoveredService, setHoveredService] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    setSending(true);
+    setError('');
+    try {
+      await sendContact({ ...formData, origen: 'Página Contacto' });
+      setSubmitted(true);
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   const inputStyle = {
@@ -269,13 +281,14 @@ export default function ContactPage({ onBack, onOpenQuote, onOpenAbout, onOpenSe
                         <textarea className="cp-input" required rows={4} placeholder="Describa su proyecto, necesidad o consulta técnica..." value={formData.mensaje} onChange={(e) => setFormData({...formData, mensaje: e.target.value})} style={{ ...inputStyle, resize: 'vertical' }} />
                       </div>
 
-                      <button type="submit"
-                        style={{ width: '100%', padding: '16px 24px', borderRadius: 16, background: 'linear-gradient(135deg, #f37021 0%, #e85d04 100%)', color: '#fff', fontSize: 14, fontWeight: 900, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 8px 28px rgba(243,112,33,0.35)', transition: 'all 0.25s ease' }}
+                      {error && <p role="alert" style={{ fontSize: 13, fontWeight: 700, color: '#e11d48', marginBottom: 14 }}>{error}</p>}
+                      <button type="submit" disabled={sending}
+                        style={{ width: '100%', padding: '16px 24px', borderRadius: 16, background: 'linear-gradient(135deg, #f37021 0%, #e85d04 100%)', color: '#fff', fontSize: 14, fontWeight: 900, border: 'none', cursor: sending ? 'wait' : 'pointer', opacity: sending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 8px 28px rgba(243,112,33,0.35)', transition: 'all 0.25s ease' }}
                         onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(243,112,33,0.4)'; }}
                         onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(243,112,33,0.35)'; }}
                       >
                         <Send style={{ width: 17, height: 17 }} />
-                        <span>Enviar Solicitud de Cotización</span>
+                        <span>{sending ? 'Enviando...' : 'Enviar Solicitud de Cotización'}</span>
                       </button>
                     </form>
                   )}

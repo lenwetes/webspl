@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, Mail, Send, CheckCircle2, Clock, ShieldCheck, ArrowRight, MessageCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { sendContact } from '../services/api';
 
 export default function Contact({ onOpenQuote, compact = false, onViewFull }) {
   const [formData, setFormData] = useState({
@@ -12,15 +13,26 @@ export default function Contact({ onOpenQuote, compact = false, onViewFull }) {
     mensaje: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+    setSending(true);
+    setError('');
+    try {
+      await sendContact({ ...formData, origen: 'Contacto Home' });
+      setSubmitted(true);
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -172,12 +184,13 @@ export default function Contact({ onOpenQuote, compact = false, onViewFull }) {
                     style={{ width: '100%', padding: '11px 14px', borderRadius: 12, background: '#f8fafc', border: '1.5px solid #e2e8f0', fontSize: 12, fontWeight: 600, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
                 </div>
 
-                <button type="submit" style={{ width: '100%', padding: '14px 24px', borderRadius: 14, background: 'linear-gradient(135deg, #f37021 0%, #e85d04 100%)', color: '#fff', fontSize: 12, fontWeight: 900, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 6px 20px rgba(243,112,33,0.35)', transition: 'all 0.25s ease' }}
+                {error && <p role="alert" style={{ fontSize: 12, fontWeight: 700, color: '#e11d48', marginBottom: 12 }}>{error}</p>}
+                <button type="submit" disabled={sending} style={{ width: '100%', padding: '14px 24px', borderRadius: 14, background: 'linear-gradient(135deg, #f37021 0%, #e85d04 100%)', color: '#fff', fontSize: 12, fontWeight: 900, border: 'none', cursor: sending ? 'wait' : 'pointer', opacity: sending ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 6px 20px rgba(243,112,33,0.35)', transition: 'all 0.25s ease' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(243,112,33,0.4)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(243,112,33,0.35)'; }}
                 >
                   <Send style={{ width: 15, height: 15 }} />
-                  <span>Enviar Formulario</span>
+                  <span>{sending ? 'Enviando...' : 'Enviar Formulario'}</span>
                 </button>
               </form>
             )}

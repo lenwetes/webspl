@@ -1,22 +1,61 @@
 import nodemailer from 'nodemailer';
 
-export async function sendPasswordResetEmail(to, name, resetUrl) {
+const CONTACT_TO = process.env.CONTACT_TO || 'slps.soluciones.informaticas@gmail.com, selpe74@gmail.com, lenwetes@gmail.com';
+
+function createTransporter() {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-
   if (!smtpUser || !smtpPass) {
-    console.warn(`⚠️ [SMTP NO CONFIGURADO] Enlace para ${to}: ${resetUrl}`);
     throw new Error('El servicio de correo SMTP no está configurado en las variables de entorno del VPS (SMTP_USER / SMTP_PASS).');
   }
-
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     secure: process.env.SMTP_SECURE === 'true',
     auth: { user: smtpUser, pass: smtpPass },
   });
-
   const fromName = process.env.EMAIL_FROM_NAME || 'SLP Soluciones Informáticas';
+  return { transporter, smtpUser, fromName };
+}
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const CONTACT_LABELS = {
+  nombre: 'Nombre', empresa: 'Empresa', telefono: 'Teléfono', correo: 'Correo',
+  servicio: 'Servicio', alcance: 'Alcance', urgencia: 'Urgencia', presupuesto: 'Presupuesto', mensaje: 'Mensaje',
+};
+
+export async function sendContactEmail(data) {
+  const { transporter, smtpUser, fromName } = createTransporter();
+  const rows = Object.entries(CONTACT_LABELS)
+    .filter(([k]) => data[k])
+    .map(([k, label]) => `<tr><td style="padding:8px 12px;font-weight:700;color:#0f1e33;background:#f8fafc;border:1px solid #e2e8f0;width:130px;vertical-align:top;">${label}</td><td style="padding:8px 12px;color:#475569;border:1px solid #e2e8f0;white-space:pre-wrap;">${esc(data[k])}</td></tr>`)
+    .join('');
+
+  await transporter.sendMail({
+    from: `"${fromName}" <${smtpUser}>`,
+    to: CONTACT_TO,
+    replyTo: data.correo,
+    subject: `[${data.origen}] ${data.servicio || 'Consulta'} — ${data.nombre}`,
+    html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+  <div style="background:#0f1e33;padding:20px 24px;border-radius:12px 12px 0 0;">
+    <span style="font-size:22px;font-weight:900;color:#f37021;">SLP</span>
+    <span style="font-size:12px;color:#94a3b8;margin-left:8px;">Nueva solicitud · ${esc(data.origen)}</span>
+  </div>
+  <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:13px;">${rows}</table>
+  <p style="font-size:11px;color:#94a3b8;margin-top:16px;">Responda este correo para contestar directamente al cliente.</p>
+</div>`,
+  });
+}
+
+export async function sendPasswordResetEmail(to, name, resetUrl) {
+  let transporter, smtpUser, fromName;
+  try {
+    ({ transporter, smtpUser, fromName } = createTransporter());
+  } catch (err) {
+    console.warn(`⚠️ [SMTP NO CONFIGURADO] Enlace para ${to}: ${resetUrl}`);
+    throw err;
+  }
 
   try {
     await transporter.sendMail({

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, CheckCircle2, ArrowRight, ArrowLeft, Send, Calculator, ShieldCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { sendContact } from '../services/api';
 
 export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
   const [step, setStep] = useState(1);
@@ -15,17 +16,38 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
     detalles: ''
   });
   const [completed, setCompleted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
-  const handleFinish = (e) => {
+  const handleFinish = async (e) => {
     e.preventDefault();
-    setCompleted(true);
-    confetti({
-      particleCount: 100,
-      spread: 80,
-      origin: { y: 0.5 }
-    });
+    setSending(true);
+    setError('');
+    try {
+      await sendContact({
+        origen: 'Cotización',
+        nombre: formData.nombre,
+        telefono: formData.telefono,
+        correo: formData.email,
+        servicio: formData.service,
+        alcance: formData.scale,
+        urgencia: formData.urgency,
+        presupuesto: formData.budget,
+        mensaje: formData.detalles,
+      });
+      setCompleted(true);
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.5 }
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   const servicesList = [
@@ -236,6 +258,8 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
                   <p>• Tiempo: {formData.urgency}</p>
                 </div>
 
+                {error && <p role="alert" className="text-xs font-bold text-rose-600">{error}</p>}
+
                 <div className="flex justify-between pt-4 border-t border-slate-100">
                   <button
                     type="button"
@@ -246,10 +270,11 @@ export default function QuoteModal({ isOpen, onClose, initialService = '' }) {
                   </button>
                   <button
                     type="submit"
-                    className="px-7 py-3 rounded-xl bg-gradient-to-r from-hostdime-orange to-amber-600 text-white font-extrabold text-xs shadow-lg shadow-orange-500/25 hover:scale-105 transition-all flex items-center gap-2 cursor-pointer"
+                    disabled={sending}
+                    className="px-7 py-3 rounded-xl bg-gradient-to-r from-hostdime-orange to-amber-600 text-white font-extrabold text-xs shadow-lg shadow-orange-500/25 hover:scale-105 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-wait"
                   >
                     <Send className="w-4 h-4" />
-                    <span>Enviar Solicitud</span>
+                    <span>{sending ? 'Enviando...' : 'Enviar Solicitud'}</span>
                   </button>
                 </div>
               </form>
