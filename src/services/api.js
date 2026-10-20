@@ -110,10 +110,11 @@ export async function sendContact(data) {
 
     subject: `[${data.origen}] ${data.servicio || 'Consulta'} — ${data.nombre}`,
     origen: data.origen,
+    fecha: new Date().toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' }),
 
     message: plainMessage,
     message_html: htmlMessage,
-    mensaje: plainMessage,
+    mensaje: htmlMessage,
     content: plainMessage,
     text: plainMessage,
     notes: plainMessage,
